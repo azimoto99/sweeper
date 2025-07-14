@@ -1,0 +1,36 @@
+{
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "headers": { "cache-control": "max-age=31536000, immutable" },
+      "dest": "/assets/$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "VITE_SUPABASE_URL": "@supabase_url",
+    "VITE_SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "VITE_MAPBOX_ACCESS_TOKEN": "@mapbox_access_token",
+    "VITE_PAYPAL_CLIENT_ID": "@paypal_client_id",
+    "VITE_APP_URL": "@app_url",
+    "VITE_BUSINESS_NAME": "Margarita's Cleaning Services",
+    "VITE_BUSINESS_PHONE": "@business_phone",
+    "VITE_BUSINESS_EMAIL": "@business_email",
+    "VITE_SERVICE_AREA_LAT": "27.5306",
+    "VITE_SERVICE_AREA_LNG": "-99.4803",
+    "VITE_SERVICE_RADIUS_MILES": "25"
+  }
+}

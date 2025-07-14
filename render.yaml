@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: sweeper
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+      - key: VITE_MAPBOX_ACCESS_TOKEN
+        sync: false
+      - key: VITE_PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: VITE_BUSINESS_NAME
+        value: "Margarita's Cleaning Services"
+      - key: VITE_BUSINESS_PHONE
+        value: "+1-956-XXX-XXXX"
+      - key: VITE_BUSINESS_EMAIL
+        value: "info@margaritascleaning.com"
+      - key: VITE_SERVICE_AREA_LAT
+        value: "27.5306"
+      - key: VITE_SERVICE_AREA_LNG
+        value: "-99.4803"
+      - key: VITE_SERVICE_RADIUS_MILES
+        value: "25"
