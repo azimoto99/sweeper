@@ -30,11 +30,7 @@ export function WorkerApp() {
   const notify = useNotify()
 
   // Enable booking notifications for workers
-  useBookingNotifications({
-    enabled: true,
-    playSound: true,
-    showDesktopNotifications: true
-  })
+  useBookingNotifications()
 
   // Use location tracking hook
   const { 
@@ -336,7 +332,7 @@ export function WorkerApp() {
                 </p>
                 {lastUpdate && (
                   <p className="text-xs text-gray-500 mt-1">
-                    Last update: {lastUpdate.toLocaleTimeString()}
+                    Last update: {new Date(lastUpdate).toLocaleTimeString()}
                   </p>
                 )}
               </div>

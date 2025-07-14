@@ -1,191 +1,258 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
-import { User as AppUser } from '../types';
-import { useLoading } from './useLoading';
+import { useState, useEffect } from 'react'
+import { User, Session } from '@supabase/supabase-js'
+import { supabase } from '../lib/supabase'
+import { User as AppUser } from '../types'
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<AppUser | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isVerified, setIsVerified] = useState(false);
-  const { showLoading, hideLoading } = useLoading();
-  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<AppUser | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [isVerified, setIsVerified] = useState(false)
 
   useEffect(() => {
-    showLoading();
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsVerified(!!session?.user?.email_confirmed_at);
+      setSession(session)
+      setUser(session?.user ?? null)
+      setIsVerified(session?.user?.email_confirmed_at != null)
+      
       if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        hideLoading();
+        fetchProfile(session.user.id)
       }
-    });
+    })
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      showLoading();
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsVerified(!!session?.user?.email_confirmed_at);
-
+      setSession(session)
+      setUser(session?.user ?? null)
+      setIsVerified(session?.user?.email_confirmed_at != null)
+      
       if (session?.user) {
-        await fetchProfile(session.user.id);
+        await fetchProfile(session.user.id)
       } else {
-        setProfile(null);
-        hideLoading();
+        setProfile(null)
       }
-    });
+    })
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => subscription.unsubscribe()
+  }, [])
+
+  // Set up real-time profile updates
+  useEffect(() => {
+    if (!user?.id) return
+
+    const subscription = supabase
+      .channel('profile-updates')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'users',
+        filter: `id=eq.${user.id}`
+      }, (payload) => {
+        setProfile(payload.new as AppUser)
+      })
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [user?.id])
 
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('users')
         .select('*')
         .eq('id', userId)
-        .single();
+        .single()
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error fetching profile:', error)
+        // If profile doesn't exist, create one
+        if (error.code === 'PGRST116') {
+          await createProfile(userId)
+        }
       } else {
-        setProfile(data);
+        setProfile(data)
       }
     } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      hideLoading();
+      console.error('Error in fetchProfile:', error)
     }
-  };
+  }
+
+  const createProfile = async (userId: string) => {
+    try {
+      const { data: authUser } = await supabase.auth.getUser()
+      if (!authUser.user) return
+
+      const { data, error } = await supabase
+        .from('users')
+        .insert({
+          id: userId,
+          email: authUser.user.email!,
+          full_name: authUser.user.user_metadata?.full_name || 'User',
+          role: authUser.user.user_metadata?.role || 'customer'
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      setProfile(data)
+    } catch (error) {
+      console.error('Error creating profile:', error)
+    }
+  }
 
   const signUp = async (email: string, password: string, fullName: string, role: 'customer' | 'worker' = 'customer') => {
-    showLoading();
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          role: role,
-        },
-      },
-    });
-    hideLoading();
-    return { data, error };
-  };
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            role: role
+          }
+        }
+      })
 
-  const signIn = async (email: string, password: string, rememberMe?: boolean) => {
-    showLoading();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+      if (error) return { error }
 
-    if (data.session && rememberMe) {
-      // Session is automatically handled by Supabase
-      console.log('Remember me enabled for session')
+      // Create user profile
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert({
+            id: data.user.id,
+            email: data.user.email,
+            full_name: fullName,
+            role: role,
+            created_at: new Date().toISOString()
+          })
+
+        if (profileError) {
+          console.error('Error creating profile:', profileError)
+        }
+      }
+
+      return { data, error: null }
+    } catch (error) {
+      return { error }
     }
+  }
 
-    hideLoading();
-    return { data, error };
-  };
+  const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      return { data, error }
+    } catch (error) {
+      return { error }
+    }
+  }
 
   const signInWithMagicLink = async (email: string) => {
-    showLoading();
-    const { data, error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    hideLoading();
-    return { data, error };
-  };
+    try {
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
+
+      return { data, error }
+    } catch (error) {
+      return { error }
+    }
+  }
 
   const signInWithGoogle = async () => {
-    showLoading();
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    hideLoading();
-    return { data, error };
-  };
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
+
+      return { data, error }
+    } catch (error) {
+      return { error }
+    }
+  }
 
   const signOut = async () => {
-    showLoading();
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
-      navigate('/auth/login');
+    try {
+      const { error } = await supabase.auth.signOut()
+      return { error }
+    } catch (error) {
+      return { error }
     }
-    hideLoading();
-    return { error };
-  };
+  }
 
   const updateProfile = async (updates: Partial<AppUser>) => {
-    showLoading();
-    if (!user) {
-      hideLoading();
-      return { error: new Error('No user logged in') };
+    if (!user) return { error: new Error('No user logged in') }
+
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', user.id)
+        .select()
+        .single()
+
+      if (error) return { error }
+
+      setProfile(data)
+      return { data, error: null }
+    } catch (error) {
+      return { error }
     }
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', user.id)
-      .select()
-      .single();
-
-    if (!error && data) {
-      setProfile(data);
-    }
-
-    hideLoading();
-    return { data, error };
-  };
+  }
 
   const resetPassword = async (email: string) => {
-    showLoading();
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    });
-    hideLoading();
-    return { data, error };
-  };
+    try {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/handle-reset-password`
+      })
+
+      return { data, error }
+    } catch (error) {
+      return { error }
+    }
+  }
 
   const updatePassword = async (password: string) => {
-    showLoading();
-    const { data, error } = await supabase.auth.updateUser({ password });
-    hideLoading();
-    return { data, error };
-  };
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        password
+      })
+
+      return { data, error }
+    } catch (error) {
+      return { error }
+    }
+  }
 
   const resendVerificationEmail = async () => {
-    showLoading();
-    if (!user) {
-      hideLoading();
-      return { error: new Error('No user logged in') };
+    if (!user?.email) return { error: new Error('No email found') }
+
+    try {
+      const { data, error } = await supabase.auth.resend({
+        type: 'signup',
+        email: user.email
+      })
+
+      return { data, error }
+    } catch (error) {
+      return { error }
     }
-
-    const { data, error } = await supabase.auth.resend({
-      type: 'signup',
-      email: user.email || '',
-    });
-
-    hideLoading();
-    return { data, error };
-  };
+  }
 
   return {
     user,
@@ -200,6 +267,6 @@ export function useAuth() {
     resetPassword,
     updatePassword,
     isVerified,
-    resendVerificationEmail,
-  };
+    resendVerificationEmail
+  }
 }

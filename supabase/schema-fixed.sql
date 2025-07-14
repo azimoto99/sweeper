@@ -53,7 +53,7 @@ CREATE TABLE bookings (
     paypal_order_id TEXT,
     location_lat DECIMAL(10, 8) NOT NULL,
     location_lng DECIMAL(11, 8) NOT NULL,
-    add_ons TEXT[],
+    add_ons TEXT[] DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -67,15 +67,6 @@ CREATE TABLE notifications (
     type TEXT DEFAULT 'info' CHECK (type IN ('info', 'success', 'warning', 'error')),
     read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
-);
-    price DECIMAL(10, 2) NOT NULL,
-    notes TEXT,
-    paypal_order_id TEXT,
-    location_lat DECIMAL(10, 8) NOT NULL,
-    location_lng DECIMAL(11, 8) NOT NULL,
-    add_ons TEXT[] DEFAULT '{}',
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Create assignments table for tracking worker assignments
@@ -95,7 +86,7 @@ CREATE TABLE assignments (
 -- Create subscriptions table
 CREATE TABLE subscriptions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     tier subscription_tier NOT NULL,
     paypal_subscription_id TEXT UNIQUE NOT NULL,
     status subscription_status DEFAULT 'active',
@@ -122,7 +113,7 @@ CREATE TABLE products (
 -- Create orders table
 CREATE TABLE orders (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     total DECIMAL(10, 2) NOT NULL,
     status order_status DEFAULT 'pending',
     paypal_order_id TEXT UNIQUE NOT NULL,
@@ -145,7 +136,7 @@ CREATE TABLE order_items (
 -- Create reviews table
 CREATE TABLE reviews (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE NOT NULL,
     worker_id UUID REFERENCES workers(id) ON DELETE SET NULL,
     rating INTEGER CHECK (rating >= 1 AND rating <= 5) NOT NULL,
@@ -205,8 +196,8 @@ CREATE TABLE worker_locations (
 );
 
 -- Create indexes for performance
-CREATE INDEX idx_profiles_email ON profiles(email);
-CREATE INDEX idx_profiles_role ON profiles(role);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_workers_status ON workers(status);
 CREATE INDEX idx_workers_profile_id ON workers(profile_id);
 CREATE INDEX idx_bookings_user_id ON bookings(user_id);
@@ -235,7 +226,7 @@ END;
 $$ language 'plpgsql';
 
 -- Create triggers for updated_at
-CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_workers_updated_at BEFORE UPDATE ON workers FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_bookings_updated_at BEFORE UPDATE ON bookings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_assignments_updated_at BEFORE UPDATE ON assignments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

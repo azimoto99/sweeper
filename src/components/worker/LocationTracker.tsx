@@ -73,7 +73,7 @@ export function LocationTracker({ workerId, isActive, onToggle, className = '' }
       setLocationHistory(prev => [
         ...prev.slice(-10), // Keep last 10 updates
         {
-          timestamp: lastUpdate,
+          timestamp: new Date(lastUpdate),
           accuracy: 10, // Simplified for demo
           speed: Math.random() * 30 // Simplified for demo
         }
@@ -161,7 +161,7 @@ export function LocationTracker({ workerId, isActive, onToggle, className = '' }
             {lastUpdate && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Last Update:</span>
-                <span className="font-medium">{formatTimeSince(lastUpdate)}</span>
+                <span className="font-medium">{formatTimeSince(new Date(lastUpdate))}</span>
               </div>
             )}
 

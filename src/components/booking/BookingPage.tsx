@@ -139,9 +139,10 @@ export function BookingPage() {
 
       if (adminUsers && adminUsers.length > 0) {
         await sendBookingNotification(
-          data,
           adminUsers.map(u => u.id),
-          'created'
+          'New Booking Created',
+          `A new ${formData.service_type} cleaning booking has been created for ${formData.address}`,
+          'info'
         )
       }
 

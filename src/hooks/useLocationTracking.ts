@@ -1,219 +1,220 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
-import { useNotify } from './useNotify'
 
 interface LocationData {
-  latitude: number
-  longitude: number
+  lat: number
+  lng: number
+  timestamp: string
+  accuracy?: number
   heading?: number
   speed?: number
-  accuracy?: number
-  timestamp: string
 }
 
-interface UseLocationTrackingOptions {
+interface LocationTrackingOptions {
   workerId?: string
   enabled?: boolean
   highAccuracy?: boolean
-  maxAge?: number
-  timeout?: number
   updateInterval?: number
+  maxAge?: number
 }
 
-export function useLocationTracking(options: UseLocationTrackingOptions = {}) {
-  const {
-    workerId,
-    enabled = true,
-    highAccuracy = true,
-    maxAge = 30000,
-    timeout = 10000,
-    updateInterval = 30000
-  } = options
-
-  const [isTracking, setIsTracking] = useState(false)
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+export function useLocationTracking(options: LocationTrackingOptions = {}) {
+  const { workerId, enabled = false, highAccuracy = true, updateInterval = 30000, maxAge = 30000 } = options
+  
+  const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [permissionStatus, setPermissionStatus] = useState<PermissionState | null>(null)
-  const notify = useNotify()
+  const [isTracking, setIsTracking] = useState(false)
+  const [lastUpdate, setLastUpdate] = useState<string | null>(null)
+  const [permissionStatus, setPermissionStatus] = useState<'granted' | 'denied' | 'prompt' | 'unknown'>('unknown')
+  const watchIdRef = useRef<number | null>(null)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Check geolocation permission
   useEffect(() => {
-    if ('permissions' in navigator) {
-      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-        setPermissionStatus(result.state)
-        result.onchange = () => setPermissionStatus(result.state)
-      })
+    if (enabled && workerId) {
+      startTracking()
+    } else {
+      stopTracking()
     }
-  }, [])
 
-  const updateLocation = useCallback(async (position: GeolocationPosition) => {
-    if (!workerId) return
+    // Check permission status
+    checkPermissionStatus()
 
+    return () => {
+      stopTracking()
+    }
+  }, [enabled, workerId])
+
+  const checkPermissionStatus = async () => {
     try {
-      const { latitude, longitude, heading, speed, accuracy } = position.coords
-      const timestamp = new Date().toISOString()
-
-      const locationData: LocationData = {
-        latitude,
-        longitude,
-        heading: heading || undefined,
-        speed: speed || undefined,
-        accuracy: accuracy || undefined,
-        timestamp
-      }
-
-      // Update current location in workers table
-      const { error: workerError } = await supabase
-        .from('workers')
-        .update({
-          current_location_lat: latitude,
-          current_location_lng: longitude,
-          last_location_update: timestamp
-        })
-        .eq('id', workerId)
-
-      if (workerError) {
-        throw new Error(`Failed to update worker location: ${workerError.message}`)
-      }
-
-      // Insert location history
-      const { error: locationError } = await supabase
-        .from('worker_locations')
-        .insert({
-          worker_id: workerId,
-          lat: latitude,
-          lng: longitude,
-          heading: heading || null,
-          speed: speed || null,
-          timestamp
-        })
-
-      if (locationError) {
-        console.warn('Failed to insert location history:', locationError)
-      }
-
-      setLastUpdate(new Date())
-      setError(null)
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-      setError(errorMessage)
-      console.error('Location update error:', err)
+      const permission = await navigator.permissions.query({ name: 'geolocation' })
+      setPermissionStatus(permission.state as any)
+    } catch (error) {
+      setPermissionStatus('unknown')
     }
-  }, [workerId])
+  }
 
-  const handleLocationError = useCallback((error: GeolocationPositionError) => {
-    let errorMessage = 'Location tracking error'
-    
-    switch (error.code) {
-      case error.PERMISSION_DENIED:
-        errorMessage = 'Location access denied by user'
-        break
-      case error.POSITION_UNAVAILABLE:
-        errorMessage = 'Location information unavailable'
-        break
-      case error.TIMEOUT:
-        errorMessage = 'Location request timed out'
-        break
-    }
-
-    setError(errorMessage)
-    console.error('Geolocation error:', error)
-
-    // Only show notification for permission errors
-    if (error.code === error.PERMISSION_DENIED) {
-      notify.error('Location access denied. Please enable location services.')
-    }
-  }, [notify])
-
-  const startTracking = useCallback(() => {
+  const startTracking = () => {
     if (!navigator.geolocation) {
-      setError('Geolocation not supported')
-      notify.error('Geolocation is not supported by this browser')
-      return null
+      setError('Geolocation is not supported by this browser')
+      return
     }
 
-    if (!workerId) {
-      setError('Worker ID required')
-      return null
-    }
+    if (isTracking) return
 
     setIsTracking(true)
     setError(null)
 
-    const watchId = navigator.geolocation.watchPosition(
-      updateLocation,
-      handleLocationError,
+    // Get initial position
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const locationData = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          timestamp: new Date().toISOString(),
+          accuracy: position.coords.accuracy,
+          heading: position.coords.heading || undefined,
+          speed: position.coords.speed || undefined
+        }
+        setCurrentLocation(locationData)
+        setLastUpdate(locationData.timestamp)
+        updateLocationInDatabase(locationData)
+      },
+      (error) => {
+        setError(`Error getting location: ${error.message}`)
+        setIsTracking(false)
+      },
       {
-        enableHighAccuracy: highAccuracy,
-        timeout: timeout,
-        maximumAge: maxAge
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
       }
     )
 
-    return watchId
-  }, [workerId, highAccuracy, timeout, maxAge, updateLocation, handleLocationError, notify])
-
-  const stopTracking = useCallback((watchId: number) => {
-    if (watchId) {
-      navigator.geolocation.clearWatch(watchId)
-    }
-    setIsTracking(false)
-  }, [])
-
-  // Auto-start/stop tracking based on enabled flag
-  useEffect(() => {
-    if (!enabled || !workerId) return
-
-    const watchId = startTracking()
-    
-    return () => {
-      if (watchId) {
-        stopTracking(watchId)
+    // Watch position changes
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const locationData = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          timestamp: new Date().toISOString(),
+          accuracy: position.coords.accuracy,
+          heading: position.coords.heading || undefined,
+          speed: position.coords.speed || undefined
+        }
+        setCurrentLocation(locationData)
+      },
+      (error) => {
+        console.error('Location tracking error:', error)
+        setError(`Location tracking error: ${error.message}`)
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 30000,
+        maximumAge: 30000
       }
+    )
+
+    // Update database every 30 seconds
+    intervalRef.current = setInterval(() => {
+      if (currentLocation) {
+        updateLocationInDatabase(currentLocation)
+      }
+    }, 30000)
+  }
+
+  const stopTracking = () => {
+    setIsTracking(false)
+    
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current)
+      watchIdRef.current = null
     }
-  }, [enabled, workerId, startTracking, stopTracking])
+
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+  }
+
+  const updateLocationInDatabase = async (locationData: LocationData) => {
+    if (!workerId) return
+
+    try {
+      const { error } = await supabase
+        .from('workers')
+        .update({
+          current_location_lat: locationData.lat,
+          current_location_lng: locationData.lng,
+          last_location_update: locationData.timestamp,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', workerId)
+
+      if (error) {
+        console.error('Error updating location in database:', error)
+      }
+
+      // Also store in location history table if it exists
+      try {
+        await supabase
+          .from('worker_locations')
+          .insert({
+            worker_id: workerId,
+            lat: locationData.lat,
+            lng: locationData.lng,
+            timestamp: locationData.timestamp,
+            accuracy: locationData.accuracy,
+            heading: locationData.heading,
+            speed: locationData.speed
+          })
+      } catch (historyError) {
+        // Location history table might not exist, that's okay
+        console.debug('Location history not stored:', historyError)
+      }
+
+    } catch (error) {
+      console.error('Error updating worker location:', error)
+    }
+  }
+
+  const requestLocationPermission = async (): Promise<boolean> => {
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported')
+      return false
+    }
+
+    try {
+      const permission = await navigator.permissions.query({ name: 'geolocation' })
+      
+      if (permission.state === 'granted') {
+        return true
+      } else if (permission.state === 'prompt') {
+        // Try to get location to trigger permission prompt
+        return new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            () => resolve(true),
+            () => resolve(false),
+            { timeout: 5000 }
+          )
+        })
+      } else {
+        setError('Location permission denied')
+        return false
+      }
+    } catch (error) {
+      console.error('Error checking location permission:', error)
+      return false
+    }
+  }
 
   return {
+    currentLocation,
+    error,
     isTracking,
     lastUpdate,
-    error,
     permissionStatus,
     startTracking,
-    stopTracking
+    stopTracking,
+    requestLocationPermission
   }
-}
-
-// Hook for getting real-time location updates for all workers
-export function useWorkerLocations() {
-  const [locations, setLocations] = useState<Record<string, LocationData>>({})
-
-  useEffect(() => {
-    const subscription = supabase
-      .channel('worker_locations_realtime')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'worker_locations' 
-      }, (payload) => {
-        const locationData = payload.new as any
-        setLocations(prev => ({
-          ...prev,
-          [locationData.worker_id]: {
-            latitude: locationData.lat,
-            longitude: locationData.lng,
-            heading: locationData.heading,
-            speed: locationData.speed,
-            timestamp: locationData.timestamp
-          }
-        }))
-      })
-      .subscribe()
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
-
-  return locations
 }

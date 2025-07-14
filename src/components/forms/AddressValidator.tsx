@@ -1,181 +1,97 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import { CheckCircleIcon, ExclamationTriangleIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import { useAddressValidation } from '../../hooks/useAddressValidation'
-import {
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-  InformationCircleIcon,
-} from '@heroicons/react/24/outline'
+
+export interface AddressValidationStatus {
+  isValid: boolean
+  isInServiceArea: boolean
+  coordinates?: { lat: number; lng: number }
+  error?: string
+}
 
 interface AddressValidatorProps {
   address: string
-  onValidation?: (result: {
-    isValid: boolean
-    isWithinServiceArea: boolean
-    coordinates: [number, number] | null
-    formattedAddress: string | null
-    error: string | null
-  }) => void
-  showDetails?: boolean
+  onValidation: (isValid: boolean, isInServiceArea: boolean, coordinates?: { lat: number; lng: number }) => void
   className?: string
 }
 
-export function AddressValidator({ 
-  address, 
-  onValidation, 
-  showDetails = true, 
-  className = '' 
-}: AddressValidatorProps) {
-  const { validateAddress, isValidating } = useAddressValidation()
+export function AddressValidator({ address, onValidation, className = "" }: AddressValidatorProps) {
+  const { validateAddress, loading } = useAddressValidation()
   const [validationResult, setValidationResult] = useState<any>(null)
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null)
+  const [showResult, setShowResult] = useState(false)
 
   useEffect(() => {
-    if (debounceTimer) {
-      clearTimeout(debounceTimer)
-    }
-
-    if (address.length >= 10) { // Only validate reasonably complete addresses
-      const timer = setTimeout(async () => {
+    if (address && address.length > 5) {
+      const timeoutId = setTimeout(async () => {
         const result = await validateAddress(address)
         setValidationResult(result)
-        onValidation?.(result)
-      }, 500)
-      
-      setDebounceTimer(timer)
+        setShowResult(true)
+        onValidation(result.isValid, result.isInServiceArea, result.coordinates)
+      }, 500) // Debounce validation
+
+      return () => clearTimeout(timeoutId)
     } else {
+      setShowResult(false)
       setValidationResult(null)
-      onValidation?.(null)
+      onValidation(false, false)
     }
+  }, [address])
 
-    return () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer)
-      }
-    }
-  }, [address, validateAddress, onValidation])
-
-  if (!address || address.length < 10) {
+  if (!showResult && !loading) {
     return null
-  }
-
-  if (isValidating) {
-    return (
-      <div className={`flex items-center text-sm text-gray-600 ${className}`}>
-        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-        Validating address...
-      </div>
-    )
-  }
-
-  if (!validationResult) {
-    return null
-  }
-
-  const getIcon = () => {
-    if (validationResult.isValid && validationResult.isWithinServiceArea) {
-      return <CheckCircleIcon className="h-4 w-4 text-green-500" />
-    }
-    if (validationResult.isValid && !validationResult.isWithinServiceArea) {
-      return <ExclamationCircleIcon className="h-4 w-4 text-yellow-500" />
-    }
-    return <ExclamationCircleIcon className="h-4 w-4 text-red-500" />
-  }
-
-  const getTextColor = () => {
-    if (validationResult.isValid && validationResult.isWithinServiceArea) {
-      return 'text-green-600'
-    }
-    if (validationResult.isValid && !validationResult.isWithinServiceArea) {
-      return 'text-yellow-600'
-    }
-    return 'text-red-600'
-  }
-
-  const getMessage = () => {
-    if (validationResult.error) {
-      return validationResult.error
-    }
-    if (validationResult.isValid && validationResult.isWithinServiceArea) {
-      return 'Address verified and within service area'
-    }
-    if (validationResult.isValid && !validationResult.isWithinServiceArea) {
-      return 'Address verified but outside service area'
-    }
-    return 'Address verification failed'
   }
 
   return (
-    <div className={`flex items-start space-x-2 text-sm ${getTextColor()} ${className}`}>
-      <div className="flex-shrink-0 mt-0.5">
-        {getIcon()}
-      </div>
-      <div className="flex-1">
-        <p>{getMessage()}</p>
-        {showDetails && validationResult.formattedAddress && (
-          <p className="text-xs text-gray-500 mt-1">
-            Formatted: {validationResult.formattedAddress}
-          </p>
-        )}
-      </div>
-    </div>
-  )
-}
+    <div className={`mt-2 ${className}`}>
+      {loading && (
+        <div className="flex items-center text-sm text-gray-500">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+          Validating address...
+        </div>
+      )}
 
-// Simple validation status indicator
-export function AddressValidationStatus({ 
-  address, 
-  className = '' 
-}: { 
-  address: string
-  className?: string 
-}) {
-  const { validateAddress, isValidating } = useAddressValidation()
-  const [isValid, setIsValid] = useState<boolean | null>(null)
-  const [isWithinServiceArea, setIsWithinServiceArea] = useState<boolean | null>(null)
+      {validationResult && !loading && (
+        <div className="space-y-2">
+          {/* Address validity */}
+          <div className="flex items-center text-sm">
+            {validationResult.isValid ? (
+              <>
+                <CheckCircleIcon className="h-4 w-4 text-green-500 mr-2" />
+                <span className="text-green-700">Valid address format</span>
+              </>
+            ) : (
+              <>
+                <XCircleIcon className="h-4 w-4 text-red-500 mr-2" />
+                <span className="text-red-700">{validationResult.error}</span>
+              </>
+            )}
+          </div>
 
-  useEffect(() => {
-    if (address.length >= 10) {
-      validateAddress(address).then(result => {
-        setIsValid(result.isValid)
-        setIsWithinServiceArea(result.isWithinServiceArea)
-      })
-    } else {
-      setIsValid(null)
-      setIsWithinServiceArea(null)
-    }
-  }, [address, validateAddress])
+          {/* Service area check */}
+          {validationResult.isValid && (
+            <div className="flex items-center text-sm">
+              {validationResult.isInServiceArea ? (
+                <>
+                  <CheckCircleIcon className="h-4 w-4 text-green-500 mr-2" />
+                  <span className="text-green-700">Within service area</span>
+                </>
+              ) : (
+                <>
+                  <ExclamationTriangleIcon className="h-4 w-4 text-yellow-500 mr-2" />
+                  <span className="text-yellow-700">{validationResult.error}</span>
+                </>
+              )}
+            </div>
+          )}
 
-  if (isValidating) {
-    return (
-      <div className={`inline-flex items-center ${className}`}>
-        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
-
-  if (isValid === null) {
-    return null
-  }
-
-  if (isValid && isWithinServiceArea) {
-    return (
-      <div className={`inline-flex items-center ${className}`}>
-        <CheckCircleIcon className="h-4 w-4 text-green-500" />
-      </div>
-    )
-  }
-
-  if (isValid && !isWithinServiceArea) {
-    return (
-      <div className={`inline-flex items-center ${className}`}>
-        <ExclamationCircleIcon className="h-4 w-4 text-yellow-500" />
-      </div>
-    )
-  }
-
-  return (
-    <div className={`inline-flex items-center ${className}`}>
-      <ExclamationCircleIcon className="h-4 w-4 text-red-500" />
+          {/* Service area info */}
+          {validationResult.isValid && validationResult.isInServiceArea && (
+            <div className="text-xs text-gray-500">
+              We provide service to this location
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

@@ -6,7 +6,7 @@ import { useBookingNotifications } from '../../hooks/useBookingNotifications'
 import { sendStatusUpdateNotification } from '../../lib/notifications'
 import { MapContainer } from '../map/MapContainer'
 import { RouteInfo } from './RouteInfo'
-import { AddressValidationStatus } from '../forms/AddressValidator'
+import { AddressValidator } from '../forms/AddressValidator'
 import {
   MapPinIcon,
   UserIcon,
@@ -36,11 +36,7 @@ export function DispatchCenter() {
   const notify = useNotify()
 
   // Enable booking notifications for admins
-  useBookingNotifications({
-    enabled: true,
-    playSound: true,
-    showDesktopNotifications: true
-  })
+  useBookingNotifications()
 
   useEffect(() => {
     fetchData()
@@ -644,7 +640,7 @@ function DraggableBookingCard({
             <div className="flex items-center">
               <MapPinIcon className="h-4 w-4 mr-2" />
               <span className="flex-1">{booking.address}</span>
-              <AddressValidationStatus address={booking.address} className="ml-2" />
+              
             </div>
             <div className="flex items-center">
               <ClockIcon className="h-4 w-4 mr-2" />
@@ -776,7 +772,7 @@ function BookingCard({
             <div className="flex items-center">
               <MapPinIcon className="h-4 w-4 mr-2" />
               <span className="flex-1">{booking.address}</span>
-              <AddressValidationStatus address={booking.address} className="ml-2" />
+              
             </div>
             <div className="flex items-center">
               <ClockIcon className="h-4 w-4 mr-2" />

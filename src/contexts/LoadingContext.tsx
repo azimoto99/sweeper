@@ -1,31 +1,43 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import LoadingIndicator from '../components/layout/LoadingIndicator';
+import React, { createContext, useContext, ReactNode, useState } from 'react'
 
 interface LoadingContextType {
-  showLoading: () => void;
-  hideLoading: () => void;
+  isLoading: boolean
+  setLoading: (loading: boolean) => void
+  loadingMessage?: string
+  setLoadingMessage: (message?: string) => void
 }
 
-const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
+const LoadingContext = createContext<LoadingContextType | undefined>(undefined)
 
 export function LoadingProvider({ children }: { children: ReactNode }) {
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadingMessage, setLoadingMessage] = useState<string | undefined>()
 
-  const showLoading = () => setLoading(true);
-  const hideLoading = () => setLoading(false);
+  const setLoading = (loading: boolean) => {
+    setIsLoading(loading)
+    if (!loading) {
+      setLoadingMessage(undefined)
+    }
+  }
 
   return (
-    <LoadingContext.Provider value={{ showLoading, hideLoading }}>
-      {loading && <LoadingIndicator />}
+    <LoadingContext.Provider value={{
+      isLoading,
+      setLoading,
+      loadingMessage,
+      setLoadingMessage
+    }}>
       {children}
     </LoadingContext.Provider>
-  );
+  )
 }
 
-export function useLoading() {
-  const context = useContext(LoadingContext);
+export function useLoadingContext() {
+  const context = useContext(LoadingContext)
   if (context === undefined) {
-    throw new Error('useLoading must be used within a LoadingProvider');
+    throw new Error('useLoadingContext must be used within a LoadingProvider')
   }
-  return context;
+  return context
 }
+
+export { LoadingContext }

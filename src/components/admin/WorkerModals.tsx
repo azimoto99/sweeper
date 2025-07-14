@@ -287,13 +287,13 @@ export function EditWorkerModal({ worker, isOpen, onClose, onSuccess }: EditWork
 
       // Update profile
       const { error: profileError } = await supabase
-        .from('profiles')
+        .from('users')
         .update({
           full_name: formData.full_name,
           phone: formData.phone || null,
           updated_at: new Date().toISOString()
         })
-        .eq('id', worker.profile_id)
+        .eq('id', worker.id)
 
       if (profileError) throw profileError
 
@@ -310,7 +310,7 @@ export function EditWorkerModal({ worker, isOpen, onClose, onSuccess }: EditWork
 
       // Send notification about profile update
       await sendSystemNotification(
-        [worker.profile_id],
+        [worker.id],
         'Profile Updated',
         'Your profile information has been updated by administration.',
         'info'

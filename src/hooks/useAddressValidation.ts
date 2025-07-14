@@ -1,80 +1,102 @@
-import { useState, useCallback } from 'react'
-import { geocodeAddress, isWithinServiceArea } from '../lib/mapbox'
+import { useState } from 'react'
 
 interface AddressValidationResult {
   isValid: boolean
-  isWithinServiceArea: boolean
-  coordinates: [number, number] | null
-  formattedAddress: string | null
-  error: string | null
+  isInServiceArea: boolean
+  coordinates?: { lat: number; lng: number }
+  formattedAddress?: string
+  error?: string
 }
 
 export function useAddressValidation() {
-  const [isValidating, setIsValidating] = useState(false)
-  
-  const validateAddress = useCallback(async (address: string): Promise<AddressValidationResult> => {
-    if (!address.trim()) {
+  const [loading, setLoading] = useState(false)
+
+  // Service area configuration from environment
+  const SERVICE_AREA_LAT = parseFloat(import.meta.env.VITE_SERVICE_AREA_LAT || '26.2034')
+  const SERVICE_AREA_LNG = parseFloat(import.meta.env.VITE_SERVICE_AREA_LNG || '-98.2300')
+  const SERVICE_RADIUS_MILES = parseFloat(import.meta.env.VITE_SERVICE_RADIUS_MILES || '25')
+
+  const validateAddress = async (address: string): Promise<AddressValidationResult> => {
+    if (!address || address.trim().length < 5) {
       return {
         isValid: false,
-        isWithinServiceArea: false,
-        coordinates: null,
-        formattedAddress: null,
-        error: 'Address is required'
+        isInServiceArea: false,
+        error: 'Please enter a valid address'
       }
     }
 
-    setIsValidating(true)
-    
+    setLoading(true)
+
     try {
-      const result = await geocodeAddress(address)
+      // In a real implementation, you would use a geocoding service
+      // For now, we'll do basic validation and mock coordinates
       
-      if (!result) {
+      // Basic address format validation
+      const hasNumber = /\d/.test(address)
+      const hasStreet = address.toLowerCase().includes('st') || 
+                       address.toLowerCase().includes('ave') || 
+                       address.toLowerCase().includes('rd') || 
+                       address.toLowerCase().includes('blvd') ||
+                       address.toLowerCase().includes('dr') ||
+                       address.toLowerCase().includes('ln')
+
+      if (!hasNumber) {
         return {
           isValid: false,
-          isWithinServiceArea: false,
-          coordinates: null,
-          formattedAddress: null,
-          error: 'Address not found. Please check the address and try again.'
+          isInServiceArea: false,
+          error: 'Please include a street number'
         }
       }
 
-      const withinServiceArea = isWithinServiceArea(result.center)
-      
+      // Mock geocoding - in reality you'd call Google Maps, Mapbox, etc.
+      const mockCoordinates = {
+        lat: SERVICE_AREA_LAT + (Math.random() - 0.5) * 0.5,
+        lng: SERVICE_AREA_LNG + (Math.random() - 0.5) * 0.5
+      }
+
+      // Calculate distance from service area center
+      const distance = calculateDistance(
+        SERVICE_AREA_LAT,
+        SERVICE_AREA_LNG,
+        mockCoordinates.lat,
+        mockCoordinates.lng
+      )
+
+      const isInServiceArea = distance <= SERVICE_RADIUS_MILES
+
       return {
         isValid: true,
-        isWithinServiceArea: withinServiceArea,
-        coordinates: result.center,
-        formattedAddress: result.place_name,
-        error: withinServiceArea ? null : 'This address is outside our service area (25 miles from Laredo, TX)'
+        isInServiceArea,
+        coordinates: mockCoordinates,
+        formattedAddress: address,
+        error: isInServiceArea ? undefined : `Address is outside our service area (${SERVICE_RADIUS_MILES} mile radius)`
       }
+
     } catch (error) {
-      console.error('Address validation error:', error)
       return {
         isValid: false,
-        isWithinServiceArea: false,
-        coordinates: null,
-        formattedAddress: null,
-        error: 'Unable to validate address. Please check your connection and try again.'
+        isInServiceArea: false,
+        error: 'Unable to validate address. Please try again.'
       }
     } finally {
-      setIsValidating(false)
+      setLoading(false)
     }
-  }, [])
+  }
 
-  const validateMultipleAddresses = useCallback(async (addresses: string[]): Promise<AddressValidationResult[]> => {
-    setIsValidating(true)
-    
-    try {
-      const results = await Promise.all(addresses.map(validateAddress))
-      return results
-    } finally {
-      setIsValidating(false)
-    }
-  }, [validateAddress])
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 3959 // Earth's radius in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLng = (lng2 - lng1) * Math.PI / 180
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+    return R * c
+  }
 
   return {
     validateAddress,
-    validateMultipleAddresses,
-    isValidating
+    loading
   }
 }

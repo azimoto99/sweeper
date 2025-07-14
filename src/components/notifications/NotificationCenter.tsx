@@ -27,9 +27,11 @@ interface Notification {
   updated_at: string
 }
 
-interface NotificationCenterProps {
-  isOpen: boolean
+export interface NotificationCenterProps {
+  notifications?: Notification[]
   onClose: () => void
+  onRefresh: () => Promise<void>
+  isOpen?: boolean
   className?: string
 }
 

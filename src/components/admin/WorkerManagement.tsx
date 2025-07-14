@@ -130,7 +130,7 @@ export function WorkerManagement() {
 
       // Send notification to the worker
       await sendSystemNotification(
-        [selectedWorker.profile_id],
+        [selectedWorker.id],
         'Account Deactivated',
         'Your worker account has been deactivated. Please contact administration for more information.',
         'warning'
@@ -162,7 +162,7 @@ export function WorkerManagement() {
       const worker = workers.find(w => w.id === workerId)
       if (worker) {
         await sendSystemNotification(
-          [worker.profile_id],
+          [worker.id],
           'Status Updated',
           `Your worker status has been updated to ${status.replace('_', ' ')}`,
           'info'
@@ -492,8 +492,8 @@ function WorkerCard({
         </div>
         <div className="flex items-center">
           <MapPinIcon className="h-4 w-4 mr-2" />
-          <span className={worker.current_location_lat ? 'text-green-600' : 'text-gray-400'}>
-            {worker.current_location_lat ? `Last seen: ${formatLastSeen()}` : 'No location data'}
+          <span className={worker.current_location ? 'text-green-600' : 'text-gray-400'}>
+            {worker.current_location ? `Last seen: ${formatLastSeen()}` : 'No location data'}
           </span>
         </div>
         <div className="flex items-center">

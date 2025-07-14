@@ -1,25 +1,40 @@
-import toast from 'react-hot-toast';
+import toast from 'react-hot-toast'
 
-export const useNotify = () => {
+export function useNotify() {
   const success = (message: string) => {
-    toast.success(message);
-  };
+    toast.success(message)
+  }
 
   const error = (message: string) => {
-    toast.error(message);
-  };
+    toast.error(message)
+  }
+
+  const info = (message: string) => {
+    toast(message, {
+      icon: 'ℹ️',
+    })
+  }
+
+  const warning = (message: string) => {
+    toast(message, {
+      icon: '⚠️',
+    })
+  }
 
   const loading = (message: string) => {
-    return toast.loading(message);
-  };
+    return toast.loading(message)
+  }
 
-  const dismiss = (toastId: string) => {
-    toast.dismiss(toastId);
-  };
+  const dismiss = (toastId?: string) => {
+    toast.dismiss(toastId)
+  }
 
-  const custom = (component: any) => {
-    toast.custom(component);
-  };
-
-  return { success, error, loading, dismiss, custom };
-};
+  return {
+    success,
+    error,
+    info,
+    warning,
+    loading,
+    dismiss
+  }
+}
