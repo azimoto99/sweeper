@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useAuthContext } from '../../contexts/AuthContext'
+import { Button } from '../ui/Button'
+import { SparklesIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
 const schema = yup.object({
@@ -23,6 +25,7 @@ export function LoginForm() {
   const navigate = useNavigate()
   const location = useLocation()
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const from = location.state?.from?.pathname || '/'
 

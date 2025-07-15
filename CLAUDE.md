@@ -26,7 +26,7 @@ npm run preview
 
 ### Tech Stack
 - **Frontend**: React 19 + TypeScript + Vite
-- **Styling**: Tailwind CSS v4 with @tailwindcss/forms
+- **Styling**: Tailwind CSS v4 with custom Vector UI Design System
 - **Backend**: Supabase (PostgreSQL, Auth, Realtime, Storage)
 - **Maps**: Mapbox GL JS for real-time dispatch and location tracking
 - **Payments**: PayPal Server SDK for checkout and subscriptions
@@ -115,6 +115,21 @@ Copy `.env.example` to `.env` and configure:
 2. Run `supabase/rls-policies.sql` to set up security policies
 3. Configure Supabase Auth settings for magic links and OAuth
 
+## Vector UI Design System
+
+**Unified Styling Architecture**: The app now uses a cohesive Vector UI design system (`src/styles/design-system.css`) that provides:
+- **Design Tokens**: Comprehensive color palette, typography scale, spacing system, and animation presets
+- **Component Classes**: Unified button system (`.btn`, `.btn-primary`, etc.), card variants (`.card`, `.card-elevated`), and input styling
+- **Vector Icons**: Consistent icon sizing system (`.icon-xs` through `.icon-2xl`) with interactive effects
+- **Animation System**: Custom animations including `.animate-glow`, `.animate-float`, and smooth transitions
+- **Accessibility**: Built-in focus management, reduced motion support, and proper contrast ratios
+
+**Component Updates**: All UI components have been updated to use the new design system:
+- **Button Component**: Enhanced with vector-optimized styling and interaction patterns
+- **Layout Components**: Glass morphism effects and consistent spacing
+- **Form Elements**: Unified input styling with proper focus states
+- **Cards**: Elevation system with hover effects and border styling
+
 ## Key Development Notes
 
 **Drag-and-Drop Dispatch**: The dispatch center uses react-dnd with a custom drop zone on the Mapbox map. Bookings are dragged from the sidebar onto worker markers to create assignments.
@@ -128,6 +143,8 @@ Copy `.env.example` to `.env` and configure:
 **Map State Management**: The dispatch center maintains complex state for selected workers/bookings, map center/zoom, and various overlay toggles (traffic, routes).
 
 **Error Handling**: All Supabase operations include proper error handling with user-friendly messages. Network failures gracefully degrade functionality.
+
+**Vector UI Consistency**: All components follow the Vector UI design system for consistent look and feel across the application.
 
 ## Known Limitations
 

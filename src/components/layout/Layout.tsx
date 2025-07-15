@@ -78,11 +78,11 @@ export function Layout({ children }: LayoutProps) {
   const navigation = getNavigationItems()
 
   return (
-    <div className="h-screen flex bg-gradient-to-br from-gray-50 via-primary-50 to-emerald-50">
+    <div className="h-screen flex" style={{ background: 'var(--vector-bg)' }}>
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-40 lg:hidden ${sidebarOpen ? '' : 'hidden'}`}>
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-        <div className="relative flex-1 flex flex-col max-w-xs w-full glass border-r border-white/20">
+        <div className="relative flex-1 flex flex-col max-w-xs w-full glass border-r" style={{ borderColor: 'var(--vector-border)' }}>
           <div className="absolute top-0 right-0 -mr-12 pt-2">
             <button
               className="ml-1 flex items-center justify-center h-10 w-10 rounded-full glass focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -105,7 +105,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Main content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Top navigation */}
-        <div className="relative z-10 flex-shrink-0 flex h-20 glass border-b border-white/20">
+        <div className="relative z-10 flex-shrink-0 flex h-20 glass border-b" style={{ borderColor: 'var(--vector-border)' }}>
           <button
             className="px-6 border-r border-white/20 text-gray-600 hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 lg:hidden transition-colors"
             onClick={() => setSidebarOpen(true)}
@@ -166,7 +166,7 @@ function SidebarContent({ navigation, onSignOut, profile }: {
   const location = useLocation()
 
   return (
-    <div className="flex flex-col h-full glass border-r border-white/20">
+    <div className="flex flex-col h-full glass border-r" style={{ borderColor: 'var(--vector-border)' }}>
       {/* Logo */}
       <div className="flex items-center h-20 flex-shrink-0 px-6 bg-gradient-to-r from-primary-600 to-emerald-600">
         <div className="flex items-center space-x-4">
