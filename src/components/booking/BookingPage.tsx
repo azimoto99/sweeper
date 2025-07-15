@@ -23,7 +23,9 @@ import {
   HomeIcon,
   BuildingOfficeIcon,
   SparklesIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  ArrowLeftIcon,
+  CheckCircleIcon
 } from '@heroicons/react/24/outline'
 
 // Get service types from pricing calculator
@@ -248,30 +250,61 @@ export function BookingPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Book a Service</h1>
-        <p className="text-gray-600 mt-2">Schedule your cleaning service in just a few steps</p>
-      </div>
-
-      {/* Progress Steps */}
-      <div className="mb-8">
-        <div className="flex items-center justify-center space-x-8">
-          {[1, 2, 3].map((stepNum) => (
-            <div key={stepNum} className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                step >= stepNum ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-600'
-              }`}>
-                {stepNum}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-primary-50 to-emerald-50">
+      {/* Header */}
+      <div className="glass border-b border-white/20 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="flex items-center text-gray-600 hover:text-primary-600 transition-colors group">
+              <ArrowLeftIcon className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
+              Back to Home
+            </Link>
+            <div className="flex items-center space-x-4">
+              <div className="h-12 w-12 bg-gradient-to-br from-primary-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <SparklesIcon className="h-7 w-7 text-white" />
               </div>
-              <span className={`ml-2 text-sm ${step >= stepNum ? 'text-primary-600' : 'text-gray-500'}`}>
-                {stepNum === 1 ? 'Service' : stepNum === 2 ? 'Schedule' : 'Payment'}
-              </span>
-              {stepNum < 3 && <div className="w-16 h-0.5 bg-gray-200 ml-4" />}
+              <div>
+                <h1 className="text-xl font-bold gradient-text">Book Your Service</h1>
+                <p className="text-sm text-gray-500">Professional cleaning made simple</p>
+              </div>
             </div>
-          ))}
+          </div>
         </div>
       </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Progress Steps */}
+        <div className="mb-12">
+          <div className="flex items-center justify-center space-x-8">
+            {[
+              { number: 1, title: 'Service', active: step >= 1 },
+              { number: 2, title: 'Schedule', active: step >= 2 },
+              { number: 3, title: 'Payment', active: step >= 3 }
+            ].map((stepItem, index) => (
+              <div key={stepItem.number} className="flex items-center">
+                <div className={`flex items-center justify-center w-12 h-12 rounded-full font-bold text-lg transition-all duration-300 ${
+                  stepItem.active 
+                    ? 'bg-gradient-to-br from-primary-500 to-emerald-600 text-white shadow-lg' 
+                    : 'bg-gray-200 text-gray-500'
+                }`}>
+                  {stepItem.active && step > stepItem.number ? (
+                    <CheckCircleIcon className="h-6 w-6" />
+                  ) : (
+                    stepItem.number
+                  )}
+                </div>
+                <span className={`ml-3 font-medium ${stepItem.active ? 'text-gray-900' : 'text-gray-500'}`}>
+                  {stepItem.title}
+                </span>
+                {index < 2 && (
+                  <div className={`w-16 h-1 mx-6 rounded-full transition-colors duration-300 ${
+                    step > stepItem.number ? 'bg-gradient-to-r from-primary-500 to-emerald-600' : 'bg-gray-200'
+                  }`} />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
 
       {/* Step 1: Service Selection */}
       {step === 1 && (
