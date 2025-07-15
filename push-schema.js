@@ -34,9 +34,9 @@ async function pushSchema() {
     console.log('✅ Connected to database');
 
     // Read schema files
-    const schemaPath = join(__dirname, 'supabase', 'schema-fixed.sql');
-    const rlsPoliciesPath = join(__dirname, 'supabase', 'rls-policies-fixed.sql');
-    const notificationsPath = join(__dirname, 'supabase', 'notifications.sql');
+    const schemaPath = join(__dirname, 'supabase', 'schema-idempotent.sql');
+    const rlsPoliciesPath = join(__dirname, 'supabase', 'rls-policies-idempotent.sql');
+    const notificationsPath = join(__dirname, 'supabase', 'notifications-fixed.sql');
     
     console.log('📄 Reading schema files...');
     const schema = readFileSync(schemaPath, 'utf8');
