@@ -2,7 +2,21 @@ import { useState, useEffect } from 'react'
 import { useAuthContext } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { Subscription } from '../../types'
-import { CheckIcon, StarIcon } from '@heroicons/react/24/outline'
+import { Button } from '../ui/Button'
+import { LoadingIndicator } from '../layout/LoadingIndicator'
+import { handleError, showSuccess, setLoading, isLoading } from '../../utils/errorHandler'
+import { createNotification } from '../notifications/NotificationCenter'
+import { 
+  CheckIcon, 
+  StarIcon, 
+  CreditCardIcon, 
+  CalendarIcon, 
+  ArrowPathIcon,
+  XMarkIcon,
+  InformationCircleIcon,
+  ShieldCheckIcon,
+  SparklesIcon
+} from '@heroicons/react/24/outline'
 
 const SUBSCRIPTION_PLANS = [
   {
@@ -51,7 +65,11 @@ const SUBSCRIPTION_PLANS = [
 export function SubscriptionsPage() {
   const { profile } = useAuthContext()
   const [currentSubscription, setCurrentSubscription] = useState<Subscription | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const loadingSubscriptions = isLoading('subscriptions')
+  const subscribing = isLoading('subscribe')
+  const canceling = isLoading('cancel_subscription')
+  const upgrading = isLoading('upgrade_subscription')
 
   useEffect(() => {
     fetchCurrentSubscription()
@@ -61,6 +79,7 @@ export function SubscriptionsPage() {
     if (!profile) return
 
     try {
+      setLoading('subscriptions', true, 'Loading subscription data...')
       const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
@@ -69,38 +88,184 @@ export function SubscriptionsPage() {
         .single()
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching subscription:', error)
+        handleError(error, { action: 'fetch_subscription', userId: profile.id })
       } else {
         setCurrentSubscription(data)
       }
     } catch (error) {
-      console.error('Error:', error)
+      handleError(error, { action: 'fetch_subscription', userId: profile.id })
     } finally {
-      setLoading(false)
+      setLoading('subscriptions', false)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white p-6 rounded-lg shadow">
-                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
-                <div className="space-y-2">
-                  {[1, 2, 3, 4].map(j => (
-                    <div key={j} className="h-4 bg-gray-200 rounded"></div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
+  const handleSubscribe = async (planId: string) => {
+    if (!profile) return
+    
+    try {
+      setLoading('subscribe', true, 'Setting up your subscription...')
+      
+      const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId)
+      if (!plan) throw new Error('Invalid plan selected')
+
+      // Create PayPal subscription
+      const response = await fetch('/api/paypal/create-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planId: planId,
+          userId: profile.id,
+          userEmail: profile.email
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to create subscription')
+      }
+
+      const { subscriptionId, approvalUrl } = await response.json()
+
+      // Save subscription to database
+      const { error: dbError } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: profile.id,
+          tier: planId,
+          paypal_subscription_id: subscriptionId,
+          status: 'active',
+          next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          discount_percentage: plan.discount
+        })
+
+      if (dbError) throw dbError
+
+      // Create notification
+      await createNotification(
+        profile.id,
+        'Subscription Activated',
+        `Your ${plan.name} subscription has been activated. You're now saving ${plan.discount}% on all services!`,
+        'success'
+      )
+
+      // Redirect to PayPal approval
+      window.location.href = approvalUrl
+      
+    } catch (error) {
+      handleError(error, { action: 'subscribe', userId: profile.id })
+    } finally {
+      setLoading('subscribe', false)
+    }
+  }
+
+  const handleCancelSubscription = async () => {
+    if (!currentSubscription || !profile) return
+    
+    try {
+      setLoading('cancel_subscription', true, 'Canceling subscription...')
+      
+      // Cancel PayPal subscription
+      const response = await fetch('/api/paypal/cancel-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subscriptionId: currentSubscription.paypal_subscription_id
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to cancel subscription')
+      }
+
+      // Update subscription status in database
+      const { error: dbError } = await supabase
+        .from('subscriptions')
+        .update({ status: 'cancelled' })
+        .eq('id', currentSubscription.id)
+
+      if (dbError) throw dbError
+
+      // Create notification
+      await createNotification(
+        profile.id,
+        'Subscription Cancelled',
+        'Your subscription has been cancelled. You will continue to have access until the end of your current billing period.',
+        'info'
+      )
+
+      setCurrentSubscription(null)
+      setShowCancelModal(false)
+      showSuccess('Subscription cancelled successfully')
+      
+    } catch (error) {
+      handleError(error, { action: 'cancel_subscription', userId: profile.id })
+    } finally {
+      setLoading('cancel_subscription', false)
+    }
+  }
+
+  const handleUpgradeSubscription = async (newPlanId: string) => {
+    if (!currentSubscription || !profile) return
+    
+    try {
+      setLoading('upgrade_subscription', true, 'Upgrading subscription...')
+      
+      const newPlan = SUBSCRIPTION_PLANS.find(p => p.id === newPlanId)
+      if (!newPlan) throw new Error('Invalid plan selected')
+
+      // Update PayPal subscription
+      const response = await fetch('/api/paypal/update-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subscriptionId: currentSubscription.paypal_subscription_id,
+          newPlanId: newPlanId
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to update subscription')
+      }
+
+      // Update subscription in database
+      const { error: dbError } = await supabase
+        .from('subscriptions')
+        .update({ 
+          tier: newPlanId,
+          discount_percentage: newPlan.discount
+        })
+        .eq('id', currentSubscription.id)
+
+      if (dbError) throw dbError
+
+      // Create notification
+      await createNotification(
+        profile.id,
+        'Subscription Updated',
+        `Your subscription has been upgraded to ${newPlan.name}. You're now saving ${newPlan.discount}% on all services!`,
+        'success'
+      )
+
+      await fetchCurrentSubscription()
+      showSuccess('Subscription upgraded successfully')
+      
+    } catch (error) {
+      handleError(error, { action: 'upgrade_subscription', userId: profile.id })
+    } finally {
+      setLoading('upgrade_subscription', false)
+    }
+  }
+
+  if (loadingSubscriptions) {
+    return <LoadingIndicator fullScreen size="lg" text="Loading subscription data..." />
   }
 
   return (
@@ -113,18 +278,35 @@ export function SubscriptionsPage() {
       </div>
 
       {currentSubscription && (
-        <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
-          <div className="flex items-center">
-            <CheckIcon className="h-6 w-6 text-green-600 mr-3" />
-            <div>
-              <h3 className="text-lg font-medium text-green-900">
-                Active {currentSubscription.tier.toUpperCase()} Subscription
-              </h3>
-              <p className="text-green-700">
-                You're saving {currentSubscription.discount_percentage}% on all services!
-                Next billing: {new Date(currentSubscription.next_billing_date).toLocaleDateString()}
-              </p>
+        <div className="mb-8 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-full mr-4">
+                <ShieldCheckIcon className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-green-900 flex items-center">
+                  Active {currentSubscription.tier.toUpperCase()} Subscription
+                  <SparklesIcon className="h-5 w-5 text-yellow-500 ml-2" />
+                </h3>
+                <p className="text-green-700">
+                  You're saving {currentSubscription.discount_percentage}% on all services!
+                </p>
+                <p className="text-sm text-green-600 mt-1">
+                  <CalendarIcon className="h-4 w-4 inline mr-1" />
+                  Next billing: {new Date(currentSubscription.next_billing_date).toLocaleDateString()}
+                </p>
+              </div>
             </div>
+            <Button
+              onClick={() => setShowCancelModal(true)}
+              variant="outline"
+              size="sm"
+              className="text-red-600 border-red-200 hover:bg-red-50"
+            >
+              <XMarkIcon className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
           </div>
         </div>
       )}
@@ -169,21 +351,24 @@ export function SubscriptionsPage() {
                 ))}
               </ul>
 
-              <button
+              <Button
+                onClick={() => currentSubscription ? handleUpgradeSubscription(plan.id) : handleSubscribe(plan.id)}
                 disabled={currentSubscription?.tier === plan.id}
-                className={`w-full py-3 px-4 rounded-md font-medium transition-colors ${
-                  currentSubscription?.tier === plan.id
-                    ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                    : plan.popular
-                    ? 'bg-primary-600 text-white hover:bg-primary-700'
-                    : 'bg-gray-900 text-white hover:bg-gray-800'
-                }`}
+                loading={subscribing || upgrading}
+                loadingText={currentSubscription ? 'Upgrading...' : 'Setting up...'}
+                variant={plan.popular ? 'primary' : 'outline'}
+                size="lg"
+                fullWidth
+                className={currentSubscription?.tier === plan.id ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}
               >
+                <CreditCardIcon className="h-5 w-5 mr-2" />
                 {currentSubscription?.tier === plan.id
                   ? 'Current Plan'
+                  : currentSubscription
+                  ? 'Upgrade'
                   : 'Choose Plan'
                 }
-              </button>
+              </Button>
             </div>
           </div>
         ))}
@@ -210,6 +395,71 @@ export function SubscriptionsPage() {
               Yes, you can change your plan at any time. Changes will take effect on your next billing cycle.
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Cancel Subscription Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center mb-4">
+              <XMarkIcon className="h-6 w-6 text-red-600 mr-3" />
+              <h3 className="text-lg font-medium text-gray-900">Cancel Subscription</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to cancel your subscription? You will continue to have access to your benefits until the end of your current billing period.
+            </p>
+            <div className="flex space-x-4">
+              <Button
+                onClick={() => setShowCancelModal(false)}
+                variant="outline"
+                fullWidth
+              >
+                Keep Subscription
+              </Button>
+              <Button
+                onClick={handleCancelSubscription}
+                loading={canceling}
+                loadingText="Canceling..."
+                variant="primary"
+                fullWidth
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Cancel Subscription
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Additional Benefits Section */}
+      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+            <ShieldCheckIcon className="h-6 w-6 text-green-600" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Guaranteed Savings</h3>
+          <p className="text-gray-600">
+            Save money on every service with automatic discount application
+          </p>
+        </div>
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <CalendarIcon className="h-6 w-6 text-blue-600" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Priority Booking</h3>
+          <p className="text-gray-600">
+            Get first access to booking slots and preferred time slots
+          </p>
+        </div>
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+            <SparklesIcon className="h-6 w-6 text-purple-600" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Premium Support</h3>
+          <p className="text-gray-600">
+            Get dedicated customer support and faster response times
+          </p>
         </div>
       </div>
     </div>

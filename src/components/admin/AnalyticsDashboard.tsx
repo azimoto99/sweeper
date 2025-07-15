@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { useNotify } from '../../hooks/useNotify'
+import { handleError, showSuccess, setLoading, isLoading } from '../../utils/errorHandler'
 import { 
   BookingsByServiceChart, 
   RevenueOverTimeChart, 
@@ -85,10 +85,9 @@ const defaultAnalytics: AnalyticsData = {
 
 export function AnalyticsDashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsData>(defaultAnalytics)
-  const [loading, setLoading] = useState(true)
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d')
   const [selectedMetric, setSelectedMetric] = useState<'revenue' | 'bookings' | 'workers'>('revenue')
-  const notify = useNotify()
+  const loadingAnalytics = isLoading('analytics')
 
   useEffect(() => {
     fetchAnalytics()
@@ -96,7 +95,7 @@ export function AnalyticsDashboard() {
 
   const fetchAnalytics = async () => {
     try {
-      setLoading(true)
+      setLoading('analytics', true, 'Loading analytics data...')
       
       const endDate = new Date()
       const startDate = new Date()
@@ -156,10 +155,9 @@ export function AnalyticsDashboard() {
         bookingGrowth
       })
     } catch (error) {
-      console.error('Error fetching analytics:', error)
-      notify.error('Failed to load analytics data')
+      handleError(error, { action: 'fetch_analytics' })
     } finally {
-      setLoading(false)
+      setLoading('analytics', false)
     }
   }
 
@@ -349,7 +347,7 @@ export function AnalyticsDashboard() {
     return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`
   }
 
-  if (loading) {
+  if (loadingAnalytics) {
     return (
       <div className="p-6">
         <div className="animate-pulse">

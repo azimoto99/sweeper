@@ -6,7 +6,7 @@ import * as yup from 'yup'
 import { useAuthContext } from '../../contexts/AuthContext'
 import { Button } from '../ui/Button'
 import { SparklesIcon, UserPlusIcon, BriefcaseIcon } from '@heroicons/react/24/outline'
-import toast from 'react-hot-toast'
+import { handleError, showSuccess, setLoading, isLoading } from '../../utils/errorHandler'
 
 const schema = yup.object({
   fullName: yup.string().required('Full name is required'),
@@ -16,6 +16,11 @@ const schema = yup.object({
     .oneOf([yup.ref('password')], 'Passwords must match')
     .required('Please confirm your password'),
   role: yup.string().oneOf(['customer', 'worker']).required('Please select a role'),
+  workerCode: yup.string().when('role', {
+    is: 'worker',
+    then: (schema) => schema.required('Worker code is required').oneOf(['sweeper2025w'], 'Invalid worker code'),
+    otherwise: (schema) => schema.notRequired()
+  }),
   agreeToTerms: yup.boolean().oneOf([true], 'You must agree to the terms and conditions')
 })
 
@@ -25,13 +30,14 @@ type FormData = {
   password: string
   confirmPassword: string
   role: 'customer' | 'worker'
+  workerCode?: string
   agreeToTerms: boolean
 }
 
 export function SignupForm() {
   const { signUp } = useAuthContext()
   const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
+  const signingUp = isLoading('signup')
 
   const {
     register,
@@ -48,19 +54,27 @@ export function SignupForm() {
   const selectedRole = watch('role')
 
   const onSubmit = async (data: FormData) => {
-    setIsLoading(true)
+    setLoading('signup', true, 'Creating your account...')
     try {
+      // Additional validation for worker code
+      if (data.role === 'worker' && data.workerCode !== 'sweeper2025w') {
+        handleError(new Error('Invalid worker access code. Please contact your supervisor.'), {
+          action: 'signup_worker_code'
+        })
+        return
+      }
+
       const { error } = await signUp(data.email, data.password, data.fullName, data.role as 'customer' | 'worker')
       if (error) {
-        toast.error(error.message)
+        handleError(error, { action: 'signup_auth' })
       } else {
-        toast.success('Account created! Please check your email to verify your account.')
+        showSuccess('Account created! Please check your email to verify your account.')
         navigate('/auth/verify-email')
       }
     } catch (error) {
-      toast.error('An unexpected error occurred')
+      handleError(error, { action: 'signup_general' })
     } finally {
-      setIsLoading(false)
+      setLoading('signup', false)
     }
   }
 
@@ -223,6 +237,27 @@ export function SignupForm() {
               )}
             </div>
 
+            {/* Worker Code Field - Only show if Worker is selected */}
+            {selectedRole === 'worker' && (
+              <div className="space-y-2 animate-fade-in">
+                <label htmlFor="workerCode" className="block text-sm font-semibold text-gray-700">
+                  Worker Access Code
+                </label>
+                <input
+                  {...register('workerCode')}
+                  type="text"
+                  className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                  placeholder="Enter your worker access code"
+                />
+                {errors.workerCode && (
+                  <p className="text-sm text-red-500 font-medium animate-fade-in">{errors.workerCode.message}</p>
+                )}
+                <p className="text-xs text-gray-500">
+                  Contact your supervisor to get your worker access code
+                </p>
+              </div>
+            )}
+
             {/* Terms Agreement */}
             <div className="space-y-3">
               <div className="flex items-start space-x-3">
@@ -253,7 +288,7 @@ export function SignupForm() {
               variant="primary"
               size="lg"
               fullWidth
-              loading={isLoading}
+              loading={signingUp}
               loadingText="Creating your account..."
               glow
               className="mt-8"

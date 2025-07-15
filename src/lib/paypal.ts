@@ -22,52 +22,95 @@ export interface PayPalSubscription {
   }
 }
 
-// Mock functions for MVP - replace with actual PayPal SDK integration later
+// Client-side PayPal API integration via backend proxy
+const API_BASE = import.meta.env.VITE_APP_URL || 'http://localhost:5173'
+
+// Create PayPal order via backend API
 export const createPayPalOrder = async (amount: number, currency: string = 'USD', description: string): Promise<PayPalOrder> => {
-  // Mock implementation for MVP
-  return {
-    id: `mock_order_${Date.now()}`,
-    status: 'CREATED',
-    amount,
-    currency,
+  const response = await fetch(`${API_BASE}/api/paypal/orders`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      amount,
+      currency,
+      description
+    })
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to create PayPal order')
   }
+
+  return await response.json()
 }
 
+// Capture PayPal order via backend API
 export const capturePayPalOrder = async (orderId: string): Promise<PayPalOrder> => {
-  // Mock implementation for MVP
-  return {
-    id: orderId,
-    status: 'COMPLETED',
-    amount: 100,
-    currency: 'USD',
+  const response = await fetch(`${API_BASE}/api/paypal/orders/${orderId}/capture`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to capture PayPal order')
   }
+
+  return await response.json()
 }
 
+// Create PayPal subscription via backend API
 export const createPayPalSubscription = async (
   planId: string,
   subscriberName: string,
   subscriberEmail: string
 ): Promise<PayPalSubscription> => {
-  // Mock implementation for MVP
-  return {
-    id: `mock_sub_${Date.now()}`,
-    status: 'ACTIVE',
-    plan_id: planId,
-    subscriber: {
-      name: subscriberName,
-      email: subscriberEmail,
+  const response = await fetch(`${API_BASE}/api/paypal/subscriptions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify({
+      planId,
+      subscriberName,
+      subscriberEmail
+    })
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to create PayPal subscription')
   }
+
+  return await response.json()
 }
 
+// Cancel PayPal subscription via backend API
 export const cancelPayPalSubscription = async (subscriptionId: string, reason: string = 'Customer request'): Promise<boolean> => {
-  // Mock implementation for MVP
-  return true
+  const response = await fetch(`${API_BASE}/api/paypal/subscriptions/${subscriptionId}/cancel`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ reason })
+  })
+
+  return response.ok
 }
 
+// Get PayPal subscription via backend API
 export const getPayPalSubscription = async (subscriptionId: string): Promise<PayPalSubscription | null> => {
-  // Mock implementation for MVP
-  return null
+  const response = await fetch(`${API_BASE}/api/paypal/subscriptions/${subscriptionId}`, {
+    method: 'GET'
+  })
+
+  if (!response.ok) {
+    return null
+  }
+
+  return await response.json()
 }
 
 // Client-side PayPal script loader

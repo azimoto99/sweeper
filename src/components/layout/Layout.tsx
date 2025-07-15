@@ -19,7 +19,9 @@ import {
   SparklesIcon,
 } from '@heroicons/react/24/outline'
 
-import EmailVerificationBanner from '../auth/EmailVerificationBanner';
+import EmailVerificationBanner from '../auth/EmailVerificationBanner'
+import { NotificationCenter } from '../notifications/NotificationCenter'
+import { handleError, showSuccess } from '../../utils/errorHandler'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -32,8 +34,13 @@ export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate()
 
   const handleSignOut = async () => {
-    await signOut()
-    navigate('/auth/login')
+    try {
+      await signOut()
+      showSuccess('Signed out successfully')
+      navigate('/auth/login')
+    } catch (error) {
+      handleError(error, { action: 'sign_out', userId: profile?.id })
+    }
   }
 
   // Navigation items based on user role
@@ -66,6 +73,7 @@ export function Layout({ children }: LayoutProps) {
         { name: 'Dispatch Center', href: '/admin/dispatch', icon: MapIcon },
         { name: 'Workers', href: '/admin/workers', icon: UsersIcon },
         { name: 'Bookings', href: '/admin/bookings', icon: CalendarIcon },
+        { name: 'Services', href: '/admin/services', icon: SparklesIcon },
         { name: 'Analytics', href: '/admin/analytics', icon: ChartBarIcon },
         { name: 'Products', href: '/products', icon: ShoppingCartIcon },
         { name: 'Settings', href: '/admin/settings', icon: CogIcon },
@@ -122,9 +130,7 @@ export function Layout({ children }: LayoutProps) {
             
             {/* Notifications */}
             <div className="ml-4 flex items-center space-x-4">
-              <button className="bg-white p-2 rounded-full text-gray-400 hover:text-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 shadow-md hover:shadow-lg transition-all duration-200">
-                <BellIcon className="h-6 w-6" />
-              </button>
+              <NotificationCenter />
               
               {/* User menu */}
               <div className="relative">

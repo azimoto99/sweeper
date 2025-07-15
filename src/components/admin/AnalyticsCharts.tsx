@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { handleError } from '../../utils/errorHandler'
 import {
   ChartBarIcon,
   ArrowTrendingUpIcon,
@@ -52,7 +53,7 @@ export function BookingsByServiceChart() {
 
       setData(chartData.sort((a, b) => b.value - a.value))
     } catch (error) {
-      console.error('Error fetching bookings by service:', error)
+      handleError(error, { action: 'fetch_bookings_by_service' })
     } finally {
       setLoading(false)
     }
@@ -166,7 +167,7 @@ export function RevenueOverTimeChart() {
 
       setData(chartData)
     } catch (error) {
-      console.error('Error fetching revenue over time:', error)
+      handleError(error, { action: 'fetch_revenue_over_time' })
     } finally {
       setLoading(false)
     }
@@ -273,7 +274,7 @@ export function WorkerUtilizationChart() {
 
       setData(utilizationData.sort((a, b) => b.value - a.value))
     } catch (error) {
-      console.error('Error fetching worker utilization:', error)
+      handleError(error, { action: 'fetch_worker_utilization' })
     } finally {
       setLoading(false)
     }
@@ -363,7 +364,7 @@ export function BookingStatusChart() {
 
       setData(chartData.sort((a, b) => b.value - a.value))
     } catch (error) {
-      console.error('Error fetching booking status:', error)
+      handleError(error, { action: 'fetch_booking_status' })
     } finally {
       setLoading(false)
     }

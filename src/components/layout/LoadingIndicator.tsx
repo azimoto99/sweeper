@@ -23,11 +23,11 @@ export function LoadingIndicator({
   }
 
   const containerClass = fullScreen 
-    ? 'fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50'
+    ? 'fixed inset-0 bg-white bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50'
     : 'flex items-center justify-center'
 
   const renderSpinner = () => (
-    <div className={`animate-spin rounded-full border-b-2 border-blue-600 ${sizeClasses[size]}`} />
+    <div className={`animate-spin rounded-full border-b-2 border-primary-600 ${sizeClasses[size]}`} />
   )
 
   const renderDots = () => (
@@ -35,7 +35,7 @@ export function LoadingIndicator({
       {[0, 1, 2].map((i) => (
         <div
           key={i}
-          className={`bg-blue-600 rounded-full animate-pulse ${
+          className={`bg-primary-600 rounded-full animate-pulse ${
             size === 'sm' ? 'h-2 w-2' : size === 'lg' ? 'h-4 w-4' : 'h-3 w-3'
           }`}
           style={{ animationDelay: `${i * 0.2}s` }}
@@ -45,7 +45,7 @@ export function LoadingIndicator({
   )
 
   const renderPulse = () => (
-    <div className={`bg-blue-200 rounded animate-pulse ${sizeClasses[size]}`} />
+    <div className={`bg-primary-200 rounded animate-pulse ${sizeClasses[size]}`} />
   )
 
   const renderContent = () => {
@@ -65,7 +65,7 @@ export function LoadingIndicator({
       <div className="text-center">
         {renderContent()}
         {text && (
-          <p className={`text-gray-600 mt-2 ${
+          <p className={`text-readable-muted mt-2 ${
             size === 'sm' ? 'text-xs' : size === 'lg' ? 'text-base' : 'text-sm'
           }`}>
             {text}

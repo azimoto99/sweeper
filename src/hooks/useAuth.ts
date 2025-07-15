@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { User as AppUser } from '../types'
+import { handleError } from '../utils/errorHandler'
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
@@ -69,7 +70,7 @@ export function useAuth() {
         .single()
 
       if (error) {
-        console.error('Error fetching profile:', error)
+        handleError(error, { action: 'fetch_profile', userId })
         // If profile doesn't exist, create one
         if (error.code === 'PGRST116') {
           await createProfile(userId)
@@ -78,7 +79,7 @@ export function useAuth() {
         setProfile(data)
       }
     } catch (error) {
-      console.error('Error in fetchProfile:', error)
+      handleError(error, { action: 'fetch_profile_catch', userId })
     }
   }
 
@@ -101,7 +102,7 @@ export function useAuth() {
       if (error) throw error
       setProfile(data)
     } catch (error) {
-      console.error('Error creating profile:', error)
+      handleError(error, { action: 'create_profile', userId })
     }
   }
 
@@ -120,23 +121,7 @@ export function useAuth() {
 
       if (error) return { error }
 
-      // Create user profile
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            email: data.user.email,
-            full_name: fullName,
-            role: role,
-            created_at: new Date().toISOString()
-          })
-
-        if (profileError) {
-          console.error('Error creating profile:', profileError)
-        }
-      }
-
+      // Profile is automatically created by database trigger
       return { data, error: null }
     } catch (error) {
       return { error }
