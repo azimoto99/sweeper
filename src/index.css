@@ -1,15 +1,83 @@
+/* Import Tailwind Base Styles First */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 /* Import Unified Vector Design System */
 @import './styles/design-system.css';
 
-/* Legacy compatibility - keeping old class names working */
+/* Legacy compatibility - keeping old class names working with pure CSS */
 .btn-primary {
-  @apply btn btn-primary;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--emerald-600) 100%);
+  border: none;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-vector);
+  transition: all var(--duration-200) var(--ease-vector);
+  cursor: pointer;
+  min-height: 44px;
+  gap: 0.5rem;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-700) 0%, var(--emerald-700) 100%);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: var(--shadow-xl);
 }
 
 .btn-secondary {
-  @apply btn btn-secondary;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary-700);
+  background: white;
+  border: 1px solid var(--primary-200);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration-200) var(--ease-vector);
+  cursor: pointer;
+  min-height: 44px;
+  gap: 0.5rem;
+}
+
+.btn-secondary:hover {
+  background: var(--primary-50);
+  border-color: var(--primary-300);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-ghost {
-  @apply btn btn-ghost;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-xl);
+  transition: all var(--duration-200) var(--ease-vector);
+  cursor: pointer;
+  min-height: 44px;
+  gap: 0.5rem;
+}
+
+.btn-ghost:hover {
+  background: var(--gray-100);
+  color: var(--gray-900);
+  transform: translateY(-1px);
 }
