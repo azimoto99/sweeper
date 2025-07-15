@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { MapPinIcon } from '@heroicons/react/24/outline'
+import { AddressValidator } from './AddressValidator'
 
 interface AddressInputProps {
   value: string
@@ -8,6 +9,7 @@ interface AddressInputProps {
   placeholder?: string
   className?: string
   required?: boolean
+  showValidation?: boolean
 }
 
 export function AddressInput({ 
@@ -16,11 +18,13 @@ export function AddressInput({
   onLocationSelect,
   placeholder = "Enter your address",
   className = "",
-  required = false
+  required = false,
+  showValidation = true
 }: AddressInputProps) {
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [validationCoordinates, setValidationCoordinates] = useState<{ lat: number; lng: number } | undefined>()
 
   // Simple address validation and geocoding
   const handleAddressChange = (address: string) => {
@@ -136,6 +140,25 @@ export function AddressInput({
             </button>
           ))}
         </div>
+      )}
+
+      {/* Address validation */}
+      {showValidation && (
+        <AddressValidator
+          address={value}
+          onValidation={(isValid, isInServiceArea, coordinates) => {
+            if (isValid && isInServiceArea && coordinates) {
+              setValidationCoordinates(coordinates)
+              onLocationSelect?.({
+                lat: coordinates.lat,
+                lng: coordinates.lng,
+                address: value
+              })
+            } else {
+              setValidationCoordinates(undefined)
+            }
+          }}
+        />
       )}
     </div>
   )

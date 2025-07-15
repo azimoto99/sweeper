@@ -11,9 +11,9 @@ interface AddressValidationResult {
 export function useAddressValidation() {
   const [loading, setLoading] = useState(false)
 
-  // Service area configuration from environment
-  const SERVICE_AREA_LAT = parseFloat(import.meta.env.VITE_SERVICE_AREA_LAT || '26.2034')
-  const SERVICE_AREA_LNG = parseFloat(import.meta.env.VITE_SERVICE_AREA_LNG || '-98.2300')
+  // Service area configuration from environment - Laredo, TX
+  const SERVICE_AREA_LAT = parseFloat(import.meta.env.VITE_SERVICE_AREA_LAT || '27.5306')
+  const SERVICE_AREA_LNG = parseFloat(import.meta.env.VITE_SERVICE_AREA_LNG || '-99.4803')
   const SERVICE_RADIUS_MILES = parseFloat(import.meta.env.VITE_SERVICE_RADIUS_MILES || '25')
 
   const validateAddress = async (address: string): Promise<AddressValidationResult> => {
@@ -48,18 +48,45 @@ export function useAddressValidation() {
         }
       }
 
-      // Mock geocoding - in reality you'd call Google Maps, Mapbox, etc.
-      const mockCoordinates = {
-        lat: SERVICE_AREA_LAT + (Math.random() - 0.5) * 0.5,
-        lng: SERVICE_AREA_LNG + (Math.random() - 0.5) * 0.5
+      // Try to use Mapbox API if available, otherwise use mock coordinates
+      let coordinates: { lat: number; lng: number }
+      
+      const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN
+      if (mapboxToken) {
+        try {
+          const response = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxToken}&limit=1&country=US`
+          )
+          const data = await response.json()
+          
+          if (data.features && data.features.length > 0) {
+            const [lng, lat] = data.features[0].center
+            coordinates = { lat, lng }
+          } else {
+            throw new Error('No results found')
+          }
+        } catch (error) {
+          console.warn('Mapbox geocoding failed, using mock coordinates:', error)
+          // Fall back to mock coordinates in Laredo area
+          coordinates = {
+            lat: SERVICE_AREA_LAT + (Math.random() - 0.5) * 0.5,
+            lng: SERVICE_AREA_LNG + (Math.random() - 0.5) * 0.5
+          }
+        }
+      } else {
+        // Mock geocoding for development
+        coordinates = {
+          lat: SERVICE_AREA_LAT + (Math.random() - 0.5) * 0.5,
+          lng: SERVICE_AREA_LNG + (Math.random() - 0.5) * 0.5
+        }
       }
 
       // Calculate distance from service area center
       const distance = calculateDistance(
         SERVICE_AREA_LAT,
         SERVICE_AREA_LNG,
-        mockCoordinates.lat,
-        mockCoordinates.lng
+        coordinates.lat,
+        coordinates.lng
       )
 
       const isInServiceArea = distance <= SERVICE_RADIUS_MILES
@@ -67,9 +94,9 @@ export function useAddressValidation() {
       return {
         isValid: true,
         isInServiceArea,
-        coordinates: mockCoordinates,
+        coordinates,
         formattedAddress: address,
-        error: isInServiceArea ? undefined : `Address is outside our service area (${SERVICE_RADIUS_MILES} mile radius)`
+        error: isInServiceArea ? undefined : `Address is outside our service area (${SERVICE_RADIUS_MILES} mile radius from Laredo, TX). Distance: ${distance.toFixed(1)} miles.`
       }
 
     } catch (error) {

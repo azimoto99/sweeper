@@ -1,10 +1,19 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuthContext } from '../../contexts/AuthContext'
 import { useNotify } from '../../hooks/useNotify'
 import { supabase } from '../../lib/supabase'
 import { sendBookingNotification } from '../../lib/notifications'
 import { PayPalButton } from '../payment/PayPalButton'
 import { AddressInput } from '../forms/AddressInput'
+import { 
+  calculateServicePrice, 
+  getServiceConfig, 
+  getAvailableAddOns,
+  calculateDistance,
+  getPricingExplanation,
+  BUSINESS_CONFIG,
+  type PricingResult
+} from '../../utils/pricingCalculator'
 import {
   CalendarIcon,
   ClockIcon,
@@ -12,42 +21,59 @@ import {
   CurrencyDollarIcon,
   HomeIcon,
   BuildingOfficeIcon,
-  SparklesIcon
+  SparklesIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline'
 
-const SERVICE_TYPES = [
-  {
-    id: 'regular',
-    name: 'Regular Cleaning',
-    description: 'Standard house cleaning service',
-    basePrice: 80,
-    duration: 2,
-    icon: HomeIcon
-  },
-  {
-    id: 'deep',
-    name: 'Deep Cleaning',
-    description: 'Thorough cleaning for move-ins or spring cleaning',
-    basePrice: 150,
-    duration: 4,
-    icon: SparklesIcon
-  },
-  {
-    id: 'office',
-    name: 'Office Cleaning',
-    description: 'Commercial office space cleaning',
-    basePrice: 120,
-    duration: 3,
-    icon: BuildingOfficeIcon
-  }
-]
+// Get service types from pricing calculator
+const getServiceTypes = () => {
+  return [
+    {
+      id: 'regular',
+      name: 'Regular Cleaning',
+      description: 'Standard house cleaning service',
+      config: getServiceConfig('regular')!,
+      icon: HomeIcon
+    },
+    {
+      id: 'deep', 
+      name: 'Deep Cleaning',
+      description: 'Thorough cleaning for move-ins or spring cleaning',
+      config: getServiceConfig('deep')!,
+      icon: SparklesIcon
+    },
+    {
+      id: 'airbnb',
+      name: 'Airbnb Cleaning', 
+      description: 'Quick turnaround cleaning for short-term rentals',
+      config: getServiceConfig('airbnb')!,
+      icon: HomeIcon
+    },
+    {
+      id: 'office',
+      name: 'Office Cleaning',
+      description: 'Commercial office space cleaning', 
+      config: getServiceConfig('office')!,
+      icon: BuildingOfficeIcon
+    },
+    {
+      id: 'move_in_out',
+      name: 'Move In/Out',
+      description: 'Complete move-in or move-out cleaning',
+      config: getServiceConfig('move_in_out')!,
+      icon: SparklesIcon
+    },
+    {
+      id: 'commercial',
+      name: 'Commercial',
+      description: 'Large commercial space cleaning',
+      config: getServiceConfig('commercial')!,
+      icon: BuildingOfficeIcon
+    }
+  ].filter(service => service.config) // Filter out any services without config
+}
 
-const ADD_ONS = [
-  { id: 'inside_oven', name: 'Inside Oven', price: 25 },
-  { id: 'inside_fridge', name: 'Inside Refrigerator', price: 25 },
-  { id: 'inside_windows', name: 'Inside Windows', price: 30 },
-  { id: 'garage', name: 'Garage Cleaning', price: 40 }
-]
+const SERVICE_TYPES = getServiceTypes()
 
 export function BookingPage() {
   const { profile } = useAuthContext()
@@ -61,7 +87,8 @@ export function BookingPage() {
     scheduled_time: '',
     address: '',
     notes: '',
-    add_ons: [] as string[]
+    add_ons: [] as string[],
+    is_recurring: false
   })
   
   const [locationData, setLocationData] = useState<{
@@ -70,9 +97,44 @@ export function BookingPage() {
     address: string
   } | null>(null)
 
+  const [pricingResult, setPricingResult] = useState<PricingResult | null>(null)
+  const [showPricingBreakdown, setShowPricingBreakdown] = useState(false)
+
   const selectedService = SERVICE_TYPES.find(s => s.id === formData.service_type)
-  const selectedAddOns = ADD_ONS.filter(addon => formData.add_ons.includes(addon.id))
-  const totalPrice = (selectedService?.basePrice || 0) + selectedAddOns.reduce((sum, addon) => sum + addon.price, 0)
+  const availableAddOns = formData.service_type ? getAvailableAddOns(formData.service_type) : []
+
+  // Calculate dynamic pricing
+  useEffect(() => {
+    if (formData.service_type && formData.scheduled_date && formData.scheduled_time && locationData) {
+      try {
+        const distanceFromCenter = calculateDistance(
+          BUSINESS_CONFIG.serviceCenterLat,
+          BUSINESS_CONFIG.serviceCenterLng,
+          locationData.lat,
+          locationData.lng
+        )
+
+        const pricing = calculateServicePrice({
+          serviceType: formData.service_type,
+          scheduledDate: formData.scheduled_date,
+          scheduledTime: formData.scheduled_time,
+          distanceFromCenter,
+          addOns: formData.add_ons,
+          isRecurring: formData.is_recurring,
+          subscriptionDiscount: 0 // TODO: Get from user's subscription
+        })
+
+        setPricingResult(pricing)
+      } catch (error) {
+        console.error('Error calculating pricing:', error)
+        setPricingResult(null)
+      }
+    } else {
+      setPricingResult(null)
+    }
+  }, [formData, locationData])
+
+  const totalPrice = pricingResult?.totalPrice || (selectedService?.config.basePrice || 0)
 
   const handleServiceSelect = (serviceId: string) => {
     setFormData({ ...formData, service_type: serviceId })
@@ -155,7 +217,8 @@ export function BookingPage() {
         scheduled_time: '',
         address: '',
         notes: '',
-        add_ons: []
+        add_ons: [],
+        is_recurring: false
       })
       setLocationData(null)
       setStep(1)
@@ -214,8 +277,8 @@ export function BookingPage() {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">{service.name}</h3>
                 <p className="text-gray-600 text-sm mb-4">{service.description}</p>
                 <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-primary-600">${service.basePrice}</span>
-                  <span className="text-sm text-gray-500">{service.duration}h</span>
+                  <span className="text-2xl font-bold text-primary-600">From ${service.config.basePrice}</span>
+                  <span className="text-sm text-gray-500">{service.config.duration}h</span>
                 </div>
               </div>
             ))}
@@ -241,7 +304,7 @@ export function BookingPage() {
               <selectedService.icon className="h-6 w-6 text-primary-600" />
               <div>
                 <h3 className="font-medium text-gray-900">{selectedService.name}</h3>
-                <p className="text-sm text-gray-600">${selectedService.basePrice} • {selectedService.duration} hours</p>
+                <p className="text-sm text-gray-600">From ${selectedService.config.basePrice} • {selectedService.config.duration} hours</p>
               </div>
             </div>
           </div>
@@ -301,7 +364,7 @@ export function BookingPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Add-ons</label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {ADD_ONS.map((addon) => (
+                {availableAddOns.map((addon) => (
                   <label key={addon.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
                     <input
                       type="checkbox"
@@ -312,10 +375,30 @@ export function BookingPage() {
                     <div className="flex-1">
                       <span className="text-sm font-medium text-gray-900">{addon.name}</span>
                       <span className="text-sm text-primary-600 ml-2">+${addon.price}</span>
+                      {addon.description && (
+                        <p className="text-xs text-gray-500 mt-1">{addon.description}</p>
+                      )}
                     </div>
                   </label>
                 ))}
               </div>
+            </div>
+
+            {/* Recurring Service Option */}
+            <div>
+              <label className="flex items-center space-x-3 p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  checked={formData.is_recurring}
+                  onChange={(e) => setFormData({ ...formData, is_recurring: e.target.checked })}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-gray-900">Recurring Service</span>
+                  <span className="text-sm text-green-600 ml-2">Save 10%</span>
+                  <p className="text-xs text-gray-500 mt-1">Schedule this service to repeat weekly, bi-weekly, or monthly</p>
+                </div>
+              </label>
             </div>
 
             <div>
@@ -331,21 +414,130 @@ export function BookingPage() {
               />
             </div>
 
-            <div className="flex justify-between items-center pt-6 border-t">
-              <div className="text-lg font-semibold text-gray-900">
-                Total: ${totalPrice}
+            <div className="pt-6 border-t">
+              {/* Pricing Display */}
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="text-lg font-semibold text-gray-900">
+                    Total: ${totalPrice}
+                  </div>
+                  {pricingResult && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPricingBreakdown(!showPricingBreakdown)}
+                      className="flex items-center text-sm text-primary-600 hover:text-primary-500 mt-1"
+                    >
+                      <InformationCircleIcon className="h-4 w-4 mr-1" />
+                      {showPricingBreakdown ? 'Hide' : 'Show'} pricing details
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  Continue to Payment
+                </button>
               </div>
-              <button
-                type="submit"
-                className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                Continue to Payment
-              </button>
+
+              {/* Pricing Breakdown */}
+              {showPricingBreakdown && pricingResult && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-md">
+                  <h4 className="font-medium text-gray-900 mb-3">Pricing Breakdown</h4>
+                  <div className="space-y-2 text-sm">
+                    {getPricingExplanation({
+                      serviceType: formData.service_type,
+                      scheduledDate: formData.scheduled_date,
+                      scheduledTime: formData.scheduled_time,
+                      distanceFromCenter: locationData ? calculateDistance(
+                        BUSINESS_CONFIG.serviceCenterLat,
+                        BUSINESS_CONFIG.serviceCenterLng,
+                        locationData.lat,
+                        locationData.lng
+                      ) : 0,
+                      addOns: formData.add_ons,
+                      isRecurring: formData.is_recurring
+                    }).map((explanation, index) => (
+                      <div key={index} className="flex justify-between">
+                        <span className="text-gray-600">{explanation.split(':')[0]}:</span>
+                        <span className="font-medium">{explanation.split(':')[1]}</span>
+                      </div>
+                    ))}
+                    <div className="border-t pt-2 flex justify-between font-semibold">
+                      <span>Total:</span>
+                      <span>${pricingResult.totalPrice}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </form>
         </div>
       )}
 
+      {/* Step 3: Payment */}
+      {step === 3 && (
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-gray-900">Payment</h2>
+          
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h3 className="font-medium text-gray-900 mb-4">Booking Summary</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>Service:</span>
+                <span>{selectedService?.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Date & Time:</span>
+                <span>{formData.scheduled_date} at {formData.scheduled_time}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Address:</span>
+                <span className="text-right max-w-xs">{formData.address}</span>
+              </div>
+              {formData.add_ons.length > 0 && (
+                <div className="flex justify-between">
+                  <span>Add-ons:</span>
+                  <span>{formData.add_ons.map(id => availableAddOns.find(a => a.id === id)?.name).filter(Boolean).join(', ')}</span>
+                </div>
+              )}
+              {formData.is_recurring && (
+                <div className="flex justify-between">
+                  <span>Recurring Service:</span>
+                  <span className="text-green-600">10% discount applied</span>
+                </div>
+              )}
+              {pricingResult && pricingResult.breakdown.discounts > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Total Discounts:</span>
+                  <span>-${pricingResult.breakdown.discounts}</span>
+                </div>
+              )}
+              <div className="border-t pt-2 flex justify-between font-semibold">
+                <span>Total:</span>
+                <span>${totalPrice}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex space-x-4">
+            <button
+              onClick={() => setStep(2)}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+            >
+              Back
+            </button>
+            <div className="flex-1">
+              <PayPalButton
+                amount={totalPrice}
+                description={`${selectedService?.name} - ${formData.scheduled_date}`}
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+              />
+            </div>
+          </div>
+        </div>
+      )}
       {/* Step 3: Payment */}
       {step === 3 && (
         <div className="space-y-6">

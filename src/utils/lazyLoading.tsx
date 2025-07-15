@@ -267,53 +267,53 @@ export function useLazyData<T>(
 export const LazyRoutes = {
   // Customer routes
   CustomerDashboard: createLazyRoute(
-    () => import('../pages/customer/CustomerDashboard'),
+    () => import('../components/customer/CustomerDashboard').then(m => ({ default: m.CustomerDashboard })),
     'dashboard'
   ),
   BookingPage: createLazyRoute(
-    () => import('../components/booking/BookingPage'),
+    () => import('../components/booking/BookingPage').then(m => ({ default: m.BookingPage })),
     'form'
   ),
   BookingHistory: createLazyRoute(
-    () => import('../components/customer/BookingHistory'),
+    () => import('../components/customer/BookingHistory').then(m => ({ default: m.BookingHistory })),
     'table'
   ),
   ServiceTracking: createLazyRoute(
-    () => import('../components/customer/ServiceTracking'),
+    () => import('../components/customer/ServiceTracking').then(m => ({ default: m.ServiceTracking })),
     'map'
   ),
 
   // Worker routes
   WorkerDashboard: createLazyRoute(
-    () => import('../components/worker/WorkerDashboard'),
+    () => import('../components/worker/WorkerDashboard').then(m => ({ default: m.WorkerDashboard })),
     'dashboard'
   ),
   WorkerApp: createLazyRoute(
-    () => import('../components/worker/WorkerApp'),
+    () => import('../components/worker/WorkerApp').then(m => ({ default: m.WorkerApp })),
     'dashboard'
   ),
 
   // Admin routes
   AdminDashboard: createLazyRoute(
-    () => import('../components/admin/AdminDashboard'),
+    () => import('../components/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })),
     'dashboard'
   ),
   DispatchCenter: createLazyRoute(
-    () => import('../components/admin/DispatchCenter'),
+    () => import('../components/admin/DispatchCenter').then(m => ({ default: m.DispatchCenter })),
     'map'
   ),
   WorkerManagement: createLazyRoute(
-    () => import('../components/admin/WorkerManagement'),
+    () => import('../components/admin/WorkerManagement').then(m => ({ default: m.WorkerManagement })),
     'table'
   ),
 
   // Auth routes
-  LoginPage: createLazyRoute(
-    () => import('../pages/auth/LoginPage'),
+  LoginForm: createLazyRoute(
+    () => import('../components/auth/LoginForm').then(m => ({ default: m.LoginForm })),
     'form'
   ),
-  SignupPage: createLazyRoute(
-    () => import('../pages/auth/SignupPage'),
+  SignupForm: createLazyRoute(
+    () => import('../components/auth/SignupForm').then(m => ({ default: m.SignupForm })),
     'form'
   )
 }
