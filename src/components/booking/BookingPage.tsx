@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuthContext } from '../../contexts/AuthContext'
 import { useNotify } from '../../hooks/useNotify'
 import { supabase } from '../../lib/supabase'
@@ -136,6 +137,9 @@ export function BookingPage() {
 
   const totalPrice = pricingResult?.totalPrice || (selectedService?.config.basePrice || 0)
 
+  // Authentication check for payment step
+  const requiresAuth = step === 3
+
   const handleServiceSelect = (serviceId: string) => {
     setFormData({ ...formData, service_type: serviceId })
     setStep(2)
@@ -159,6 +163,13 @@ export function BookingPage() {
       notify.error('Please select a valid address from the suggestions')
       return
     }
+    
+    // Check if user is authenticated before proceeding to payment
+    if (!profile) {
+      notify.error('Please sign in to complete your booking')
+      return
+    }
+    
     setStep(3)
   }
 
@@ -432,12 +443,32 @@ export function BookingPage() {
                     </button>
                   )}
                 </div>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  Continue to Payment
-                </button>
+                {profile ? (
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    Continue to Payment
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">Sign in to complete your booking</p>
+                    <div className="flex space-x-3">
+                      <Link
+                        to="/auth/login"
+                        className="flex-1 px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 text-center"
+                      >
+                        Sign In
+                      </Link>
+                      <Link
+                        to="/auth/signup"
+                        className="flex-1 px-6 py-2 border border-primary-600 text-primary-600 rounded-md hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 text-center"
+                      >
+                        Sign Up
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Pricing Breakdown */}
@@ -558,10 +589,10 @@ export function BookingPage() {
                 <span>Address:</span>
                 <span className="text-right max-w-xs">{formData.address}</span>
               </div>
-              {selectedAddOns.length > 0 && (
+              {formData.add_ons.length > 0 && (
                 <div className="flex justify-between">
                   <span>Add-ons:</span>
-                  <span>{selectedAddOns.map(a => a.name).join(', ')}</span>
+                  <span>{formData.add_ons.map(id => availableAddOns.find(a => a.id === id)?.name).filter(Boolean).join(', ')}</span>
                 </div>
               )}
               <div className="border-t pt-2 flex justify-between font-semibold">

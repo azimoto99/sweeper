@@ -11,6 +11,7 @@ import { DispatchCenter } from './components/admin/DispatchCenter'
 import { AnalyticsDashboard } from './components/admin/AnalyticsDashboard'
 import { Layout } from './components/layout/Layout'
 import { Dashboard } from './components/dashboard/Dashboard'
+import { LandingPage } from './components/landing/LandingPage'
 import { BookingPage } from './components/booking/BookingPage'
 import { WorkerApp } from './components/worker/WorkerApp'
 import { CustomerApp } from './components/customer/CustomerApp'
@@ -36,6 +37,8 @@ function App() {
           <Router>
             <Routes>
               {/* Public routes */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/booking" element={<BookingPage />} />
               <Route path="/auth/login" element={<LoginForm />} />
               <Route path="/auth/signup" element={<SignupForm />} />
               <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
@@ -46,8 +49,8 @@ function App() {
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
 
-              {/* Protected routes with layout */}
-              <Route path="/" element={
+              {/* Protected dashboard */}
+              <Route path="/dashboard" element={
                 <AuthGuard>
                   <Layout>
                     <Dashboard />
@@ -62,13 +65,6 @@ function App() {
                 </CustomerGuard>
               } />
 
-              <Route path="/book" element={
-                <CustomerGuard>
-                  <Layout>
-                    <BookingPage />
-                  </Layout>
-                </CustomerGuard>
-              } />
 
               <Route path="/subscriptions" element={
                 <CustomerGuard>
