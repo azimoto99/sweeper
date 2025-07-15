@@ -99,13 +99,13 @@ const WHY_CHOOSE_US = [
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white scroll-smooth">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg">
                 <SparklesIcon className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -113,14 +113,24 @@ export function LandingPage() {
                 <p className="text-sm text-gray-500">Professional Cleaning in Laredo, TX</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <a href="tel:+1234567890" className="flex items-center text-blue-600 hover:text-blue-700">
+            <div className="hidden md:flex items-center space-x-6">
+              <a href="#services" className="text-gray-600 hover:text-blue-600 transition-colors">Services</a>
+              <a href="#testimonials" className="text-gray-600 hover:text-blue-600 transition-colors">Reviews</a>
+              <a href="tel:+19561234567" className="flex items-center text-blue-600 hover:text-blue-700 font-medium">
                 <PhoneIcon className="h-4 w-4 mr-1" />
                 (956) 123-4567
               </a>
               <Link
                 to="/booking"
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium shadow-md hover:shadow-lg"
+              >
+                Book Now
+              </Link>
+            </div>
+            <div className="md:hidden">
+              <Link
+                to="/booking"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
               >
                 Book Now
               </Link>
@@ -187,22 +197,28 @@ export function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {SERVICES.map((service) => (
-              <div key={service.id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+              <div key={service.id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
                 <service.icon className="h-12 w-12 text-blue-600 mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{service.name}</h3>
-                <p className="text-gray-600 mb-4">{service.description}</p>
+                <p className="text-gray-600 mb-4 min-h-[3rem]">{service.description}</p>
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-2xl font-bold text-blue-600">{service.price}</span>
-                  <span className="text-sm text-gray-500">{service.duration}</span>
+                  <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{service.duration}</span>
                 </div>
-                <ul className="space-y-2">
+                <ul className="space-y-2 mb-6">
                   {service.features.map((feature, index) => (
-                    <li key={index} className="flex items-center text-sm text-gray-600">
-                      <CheckCircleIcon className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                      {feature}
+                    <li key={index} className="flex items-start text-sm text-gray-600">
+                      <CheckCircleIcon className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
+                <Link
+                  to="/booking"
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors inline-block text-center font-medium"
+                >
+                  Choose This Service
+                </Link>
               </div>
             ))}
           </div>
@@ -244,7 +260,7 @@ export function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20">
+      <section id="testimonials" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
@@ -255,16 +271,26 @@ export function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {TESTIMONIALS.map((testimonial, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-lg p-6">
+              <div key={index} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100 relative">
+                <div className="absolute top-4 right-4">
+                  <svg className="h-8 w-8 text-blue-100" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4.001v10h-10.001z"/>
+                  </svg>
+                </div>
                 <div className="flex items-center mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <StarIcon key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                    <StarIcon key={i} className="h-5 w-5 text-yellow-400 fill-yellow-400" />
                   ))}
                 </div>
-                <p className="text-gray-600 mb-4 italic">"{testimonial.text}"</p>
-                <div>
-                  <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                  <p className="text-sm text-gray-500">{testimonial.location}</p>
+                <p className="text-gray-700 mb-6 italic leading-relaxed">"{testimonial.text}"</p>
+                <div className="flex items-center">
+                  <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                    <span className="text-blue-600 font-semibold">{testimonial.name.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
+                    <p className="text-sm text-gray-500">{testimonial.location}</p>
+                  </div>
                 </div>
               </div>
             ))}
