@@ -1,6 +1,4 @@
-import { Config } from 'tailwindcss'
-import forms from '@tailwindcss/forms'
-
+/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
@@ -76,6 +74,38 @@ export default {
         'scale-in': 'scaleIn 0.4s ease-out forwards',
         'bounce-subtle': 'bounce 2s infinite',
       },
+      keyframes: {
+        fadeIn: {
+          'from': {
+            opacity: '0',
+            transform: 'translateY(10px)'
+          },
+          'to': {
+            opacity: '1',
+            transform: 'translateY(0)'
+          }
+        },
+        slideIn: {
+          'from': {
+            opacity: '0',
+            transform: 'translateY(30px)'
+          },
+          'to': {
+            opacity: '1',
+            transform: 'translateY(0)'
+          }
+        },
+        scaleIn: {
+          'from': {
+            opacity: '0',
+            transform: 'scale(0.95)'
+          },
+          'to': {
+            opacity: '1',
+            transform: 'scale(1)'
+          }
+        }
+      },
       boxShadow: {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
         'medium': '0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
@@ -88,5 +118,7 @@ export default {
       },
     },
   },
-  plugins: [forms],
-} satisfies Config
+  plugins: [
+    require('@tailwindcss/forms'),
+  ],
+}

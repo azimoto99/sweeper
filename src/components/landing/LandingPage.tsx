@@ -143,10 +143,18 @@ export function LandingPage() {
                 <PhoneIcon className="h-5 w-5 mr-2 group-hover:animate-pulse" />
                 (956) 123-4567
               </a>
-              <Link to="/booking" className="btn-primary">
-                Book Now
-                <ArrowRightIcon className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-              </Link>
+              <div className="flex items-center space-x-4">
+                <Link to="/auth/login" className="text-gray-700 hover:text-primary-600 font-semibold transition-colors">
+                  Sign In
+                </Link>
+                <Link to="/auth/signup" className="btn-secondary">
+                  Sign Up
+                </Link>
+                <Link to="/booking" className="btn-primary">
+                  Book Now
+                  <ArrowRightIcon className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                </Link>
+              </div>
             </div>
 
             {/* Mobile Menu Button */}
@@ -171,9 +179,17 @@ export function LandingPage() {
               <a href="#testimonials" className="block py-2 text-gray-700 hover:text-primary-600 transition-colors">Reviews</a>
               <a href="#about" className="block py-2 text-gray-700 hover:text-primary-600 transition-colors">About</a>
               <a href="tel:+19561234567" className="block py-2 text-primary-600 font-semibold">(956) 123-4567</a>
-              <Link to="/booking" className="btn-primary w-full justify-center">
-                Book Now
-              </Link>
+              <div className="border-t border-gray-200 pt-4 space-y-3">
+                <Link to="/auth/login" className="block py-2 text-gray-700 hover:text-primary-600 font-semibold transition-colors">
+                  Sign In
+                </Link>
+                <Link to="/auth/signup" className="btn-secondary w-full justify-center">
+                  Sign Up
+                </Link>
+                <Link to="/booking" className="btn-primary w-full justify-center">
+                  Book Now
+                </Link>
+              </div>
             </div>
           )}
         </div>
@@ -210,7 +226,7 @@ export function LandingPage() {
             </p>
             
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
               <Link to="/booking" className="group btn-primary text-xl px-10 py-4 shadow-large">
                 <CalendarIcon className="h-6 w-6 mr-3 group-hover:animate-bounce" />
                 Start Your Journey
@@ -221,6 +237,17 @@ export function LandingPage() {
                 <PlayIcon className="h-6 w-6 mr-3 group-hover:scale-110 transition-transform duration-300" />
                 Watch Demo
               </button>
+            </div>
+
+            {/* Login/Dashboard Access */}
+            <div className="mb-16">
+              <div className="inline-flex items-center space-x-4 glass rounded-2xl px-8 py-4 shadow-soft border border-white/30">
+                <div className="text-gray-600 font-medium">Already have an account?</div>
+                <Link to="/auth/login" className="text-primary-600 hover:text-primary-700 font-bold transition-colors flex items-center group">
+                  Sign in to your dashboard
+                  <ArrowRightIcon className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                </Link>
+              </div>
             </div>
             
             {/* Trust Indicators */}
