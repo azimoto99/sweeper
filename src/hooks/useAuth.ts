@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { User as AppUser } from '../types'
 import { handleError } from '../utils/errorHandler'
+import { getAuthCallbackUrl } from '../lib/config'
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
@@ -146,6 +147,7 @@ export function useAuth() {
         email,
         password,
         options: {
+          emailRedirectTo: getAuthCallbackUrl(),
           data: {
             full_name: fullName,
             role: role
@@ -185,7 +187,7 @@ export function useAuth() {
       const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: getAuthCallbackUrl()
         }
       })
 
@@ -200,7 +202,7 @@ export function useAuth() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: getAuthCallbackUrl()
         }
       })
 
