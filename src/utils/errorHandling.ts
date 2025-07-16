@@ -270,25 +270,23 @@ export function withErrorBoundary<P extends object>(
   fallback?: React.ComponentType<{ error: Error; resetError: () => void }>
 ) {
   return function WrappedComponent(props: P) {
-    return (
-      <ErrorBoundary fallback={fallback}>
-        <Component {...props} />
-      </ErrorBoundary>
-    )
+    return React.createElement(ErrorBoundary, { fallback }, React.createElement(Component, props))
   }
 }
 
-// Error boundary component
+// Error boundary component - simplified without JSX
 interface ErrorBoundaryState {
   hasError: boolean
   error?: Error
 }
 
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode; fallback?: React.ComponentType<{ error: Error; resetError: () => void }> },
-  ErrorBoundaryState
-> {
-  constructor(props: any) {
+interface ErrorBoundaryProps {
+  children: React.ReactNode
+  fallback?: React.ComponentType<{ error: Error; resetError: () => void }>
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props)
     this.state = { hasError: false }
   }
@@ -316,47 +314,67 @@ class ErrorBoundary extends React.Component<
         })
       }
 
+      // Simple fallback without complex JSX
       return React.createElement('div', {
-        className: 'min-h-screen flex items-center justify-center bg-gray-50'
+        style: {
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#f9fafb',
+          fontFamily: 'system-ui, -apple-system, sans-serif'
+        }
       }, React.createElement('div', {
-        className: 'max-w-md w-full bg-white shadow-lg rounded-lg p-6'
+        style: {
+          maxWidth: '400px',
+          width: '100%',
+          backgroundColor: 'white',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+          borderRadius: '8px',
+          padding: '24px'
+        }
       }, [
-        React.createElement('div', {
-          key: 'header',
-          className: 'flex items-center mb-4'
-        }, [
-          React.createElement('div', {
-            key: 'icon',
-            className: 'flex-shrink-0'
-          }, React.createElement('div', {
-            className: 'h-8 w-8 bg-red-400 rounded-full flex items-center justify-center'
-          }, '⚠️')),
-          React.createElement('div', {
-            key: 'title',
-            className: 'ml-3'
-          }, React.createElement('h3', {
-            className: 'text-lg font-medium text-gray-900'
-          }, 'Something went wrong'))
-        ]),
-        React.createElement('div', {
+        React.createElement('h3', {
+          key: 'title',
+          style: { fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px' }
+        }, 'Something went wrong'),
+        React.createElement('p', {
           key: 'message',
-          className: 'mb-4'
-        }, React.createElement('p', {
-          className: 'text-sm text-gray-600'
-        }, 'We\'re sorry, but something unexpected happened. Our team has been notified and is working to fix the issue.')),
+          style: { fontSize: '14px', color: '#6b7280', marginBottom: '24px' }
+        }, 'We\'re sorry, but something unexpected happened. Please try refreshing the page.'),
         React.createElement('div', {
           key: 'buttons',
-          className: 'flex space-x-3'
+          style: { display: 'flex', gap: '12px' }
         }, [
           React.createElement('button', {
             key: 'retry',
             onClick: this.resetError,
-            className: 'flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
+            style: {
+              flex: '1',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500'
+            }
           }, 'Try Again'),
           React.createElement('button', {
             key: 'home',
             onClick: () => window.location.href = '/',
-            className: 'flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500'
+            style: {
+              flex: '1',
+              backgroundColor: '#d1d5db',
+              color: '#374151',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500'
+            }
           }, 'Go Home')
         ])
       ]))
