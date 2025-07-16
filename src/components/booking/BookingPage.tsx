@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase'
 import { sendBookingNotification } from '../../lib/notifications'
 import { PayPalButton } from '../payment/PayPalButton'
 import { AddressInput } from '../forms/AddressInput'
+import { getUserSubscriptionDiscount, applySubscriptionDiscount } from '../../utils/subscriptionUtils'
 import { 
   calculateServicePrice, 
   getServiceConfig, 
@@ -102,9 +103,21 @@ export function BookingPage() {
 
   const [pricingResult, setPricingResult] = useState<PricingResult | null>(null)
   const [showPricingBreakdown, setShowPricingBreakdown] = useState(false)
+  const [subscriptionDiscount, setSubscriptionDiscount] = useState<{
+    tier: string | null
+    discountPercentage: number
+    isActive: boolean
+  }>({ tier: null, discountPercentage: 0, isActive: false })
 
   const selectedService = SERVICE_TYPES.find(s => s.id === formData.service_type)
   const availableAddOns = formData.service_type ? getAvailableAddOns(formData.service_type) : []
+
+  // Fetch user's subscription discount
+  useEffect(() => {
+    if (profile) {
+      getUserSubscriptionDiscount(profile.id).then(setSubscriptionDiscount)
+    }
+  }, [profile])
 
   // Calculate dynamic pricing
   useEffect(() => {
@@ -124,7 +137,7 @@ export function BookingPage() {
           distanceFromCenter,
           addOns: formData.add_ons,
           isRecurring: formData.is_recurring,
-          subscriptionDiscount: 0 // TODO: Get from user's subscription
+          subscriptionDiscount: subscriptionDiscount.discountPercentage
         })
 
         setPricingResult(pricing)
@@ -135,7 +148,7 @@ export function BookingPage() {
     } else {
       setPricingResult(null)
     }
-  }, [formData, locationData])
+  }, [formData, locationData, subscriptionDiscount])
 
   const totalPrice = pricingResult?.totalPrice || (selectedService?.config.basePrice || 0)
 
@@ -196,8 +209,8 @@ export function BookingPage() {
           notes: formData.notes || null,
           price: totalPrice,
           paypal_order_id: orderId,
-          location_lat: locationData?.lat || 27.5306, // Use geocoded coordinates
-          location_lng: locationData?.lng || -99.4803,
+          location_lat: locationData?.lat || parseFloat(import.meta.env.VITE_SERVICE_AREA_LAT || '27.5306'),
+          location_lng: locationData?.lng || parseFloat(import.meta.env.VITE_SERVICE_AREA_LNG || '-99.4803'),
           add_ons: formData.add_ons.length > 0 ? formData.add_ons : null,
           status: 'pending'
         })
@@ -571,61 +584,16 @@ export function BookingPage() {
                   <span className="text-green-600">10% discount applied</span>
                 </div>
               )}
+              {subscriptionDiscount.isActive && (
+                <div className="flex justify-between text-green-600">
+                  <span>{subscriptionDiscount.tier?.toUpperCase()} Membership:</span>
+                  <span>{subscriptionDiscount.discountPercentage}% discount applied</span>
+                </div>
+              )}
               {pricingResult && pricingResult.breakdown.discounts > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Total Discounts:</span>
                   <span>-${pricingResult.breakdown.discounts}</span>
-                </div>
-              )}
-              <div className="border-t pt-2 flex justify-between font-semibold">
-                <span>Total:</span>
-                <span>${totalPrice}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex space-x-4">
-            <button
-              onClick={() => setStep(2)}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-            >
-              Back
-            </button>
-            <div className="flex-1">
-              <PayPalButton
-                amount={totalPrice}
-                description={`${selectedService?.name} - ${formData.scheduled_date}`}
-                onSuccess={handlePaymentSuccess}
-                onError={handlePaymentError}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Step 3: Payment */}
-      {step === 3 && (
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-gray-900">Payment</h2>
-          
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h3 className="font-medium text-gray-900 mb-4">Booking Summary</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Service:</span>
-                <span>{selectedService?.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Date & Time:</span>
-                <span>{formData.scheduled_date} at {formData.scheduled_time}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Address:</span>
-                <span className="text-right max-w-xs">{formData.address}</span>
-              </div>
-              {formData.add_ons.length > 0 && (
-                <div className="flex justify-between">
-                  <span>Add-ons:</span>
-                  <span>{formData.add_ons.map(id => availableAddOns.find(a => a.id === id)?.name).filter(Boolean).join(', ')}</span>
                 </div>
               )}
               <div className="border-t pt-2 flex justify-between font-semibold">

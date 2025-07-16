@@ -239,9 +239,19 @@ export function AnalyticsDashboard() {
         const completed_jobs = workerBookings?.length || 0
         const total_revenue = workerBookings?.reduce((sum, b) => sum + (b.price || 0), 0) || 0
         
-        // Mock rating data
-        const average_rating = 4.2 + Math.random() * 0.8
-        const efficiency_score = Math.min(100, (completed_jobs / 20) * 100)
+        // Get actual rating data from reviews
+        const { data: workerReviews } = await supabase
+          .from('reviews')
+          .select('rating')
+          .eq('worker_id', worker.id)
+          .gte('created_at', startDate.toISOString())
+          .lte('created_at', endDate.toISOString())
+
+        const average_rating = workerReviews && workerReviews.length > 0
+          ? workerReviews.reduce((sum, r) => sum + r.rating, 0) / workerReviews.length
+          : 0
+        
+        const efficiency_score = Math.min(100, (completed_jobs / Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 7)))) * 100)
 
         return {
           worker_id: worker.id,
@@ -293,7 +303,17 @@ export function AnalyticsDashboard() {
     ).length || 0
     
     const returningCustomers = totalCustomers - newCustomers
-    const churnRate = Math.random() * 5 // Mock churn rate
+    
+    // Calculate actual churn rate based on customers who haven't booked in the last 90 days
+    const { data: recentBookings } = await supabase
+      .from('bookings')
+      .select('user_id')
+      .gte('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
+      .eq('status', 'completed')
+
+    const activeCustomerIds = new Set(recentBookings?.map(b => b.user_id) || [])
+    const inactiveCustomers = customers?.filter(c => !activeCustomerIds.has(c.id)).length || 0
+    const churnRate = totalCustomers > 0 ? (inactiveCustomers / totalCustomers) * 100 : 0
 
     return {
       customerMetrics: {

@@ -1,183 +1,218 @@
-# Supabase CLI
+# Sweeper - Professional Cleaning Services Platform
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+A comprehensive cleaning services platform that connects customers with professional cleaning workers through a real-time dispatch system. Built for Margarita's Cleaning Services in the Laredo, TX area.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+## 🚀 Features
 
-This repository contains all the functionality for Supabase CLI.
+- **Real-time Booking & Dispatch** - Live assignment of workers to customer requests
+- **Multi-role Platform** - Separate interfaces for customers, workers, and administrators
+- **Payment Processing** - PayPal integration with subscription management
+- **Location Services** - Geographic service area management with Mapbox integration
+- **Mobile-first Design** - Responsive interface optimized for worker mobile usage
+- **Review System** - Customer feedback and rating system
+- **E-commerce Integration** - Product catalog for cleaning supplies
+- **Subscription Plans** - Membership tiers with discounts for regular customers
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+## 🛠 Technology Stack
 
-## Getting started
+### Frontend
+- **React 19** with TypeScript
+- **Vite** for build tooling and development server
+- **Tailwind CSS 4.x** with custom design system
+- **React Router DOM** for client-side routing
+- **React Hook Form** with Yup validation
 
-### Install the CLI
+### Backend & Database
+- **Supabase** for backend-as-a-service
+- **PostgreSQL** with Row Level Security (RLS)
+- **Real-time subscriptions** for live updates
+- **Supabase Auth** for authentication
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+### Key Libraries
+- **React DnD** - Drag-and-drop functionality
+- **Mapbox GL** - Mapping and location services
+- **PayPal SDK** - Payment processing
+- **React Hot Toast** - Notifications
+- **Date-fns** - Date manipulation
+- **Heroicons** - Consistent iconography
+
+## 📋 Prerequisites
+
+- **Node.js 18+**
+- **npm** or **yarn**
+- **Supabase account** and project
+- **PayPal Developer account**
+- **Mapbox account** for mapping services
+
+## 🚀 Quick Start
+
+### 1. Clone and Install
+```bash
+git clone <repository-url>
+cd sweeper
+npm install
+```
+
+### 2. Environment Setup
+Copy `.env.example` to `.env` and configure:
+
+```env
+# Supabase Configuration
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# PayPal Configuration
+VITE_PAYPAL_CLIENT_ID=your_paypal_client_id
+
+# Mapbox Configuration
+VITE_MAPBOX_ACCESS_TOKEN=your_mapbox_access_token
+
+# Business Configuration
+VITE_BUSINESS_NAME="Margarita's Cleaning Services"
+VITE_BUSINESS_PHONE="+1-956-XXX-XXXX"
+VITE_BUSINESS_EMAIL="info@margaritascleaning.com"
+VITE_SERVICE_AREA_RADIUS=25
+VITE_SERVICE_AREA_CENTER_LAT=27.5306
+VITE_SERVICE_AREA_CENTER_LNG=-99.4803
+```
+
+### 3. Database Setup
+In your Supabase SQL Editor, execute in order:
+1. `supabase/schema.sql` - Database schema
+2. `supabase/rls-policies.sql` - Security policies
+3. `supabase/notifications.sql` - Real-time notifications
+4. `setup-demo-data.sql` - (Optional) Demo data for testing
+
+### 4. Start Development Server
+```bash
+npm run dev
+```
+
+Visit `http://localhost:5173` to see the application.
+
+## 📁 Project Structure
+
+```
+sweeper/
+├── src/
+│   ├── components/          # React components organized by feature
+│   │   ├── admin/          # Admin dashboard and dispatch center
+│   │   ├── auth/           # Authentication forms and guards
+│   │   ├── booking/        # Service booking flow
+│   │   ├── customer/       # Customer-specific features
+│   │   ├── worker/         # Worker mobile interface
+│   │   ├── dashboard/      # Role-based dashboards
+│   │   ├── layout/         # Shared layout components
+│   │   ├── ui/             # Reusable UI components
+│   │   ├── forms/          # Form components and validation
+│   │   ├── payment/        # PayPal integration
+│   │   ├── map/            # Mapbox integration
+│   │   ├── notifications/  # Toast and real-time notifications
+│   │   ├── products/       # E-commerce catalog
+│   │   ├── reviews/        # Rating and review system
+│   │   └── subscriptions/  # Membership plans
+│   ├── contexts/           # React contexts (Auth, Loading)
+│   ├── hooks/              # Custom React hooks
+│   ├── lib/                # Third-party service integrations
+│   ├── types/              # TypeScript type definitions
+│   ├── utils/              # Utility functions and helpers
+│   ├── pages/              # Full page components
+│   └── styles/             # Additional CSS files
+├── supabase/               # Database schema and policies
+├── public/                 # Static assets
+└── plans/                  # Project planning documents
+```
+
+## 🎯 User Roles
+
+### Customer
+- Browse and book cleaning services
+- Manage appointments and subscriptions
+- Rate and review completed services
+- Purchase cleaning supplies
+
+### Worker
+- Mobile-optimized interface for field work
+- Receive real-time job assignments
+- Update job status and completion
+- Access customer information and service details
+
+### Administrator
+- Dispatch center for managing bookings
+- Worker management and scheduling
+- Customer service and support
+- Analytics and reporting
+
+## 🔧 Development Commands
 
 ```bash
-npm i supabase --save-dev
+# Development
+npm run dev          # Start development server (localhost:5173)
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+
+# Database
+# Execute SQL files in Supabase SQL Editor in this order:
+# 1. supabase/schema.sql
+# 2. supabase/rls-policies.sql
+# 3. supabase/notifications.sql
 ```
 
-To install the beta release channel:
+## 🚀 Deployment
 
+### Vercel (Recommended)
 ```bash
-npm i supabase@beta --save-dev
+npm install -g vercel
+vercel --prod
 ```
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
-
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
-
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
-
-<details>
-  <summary><b>macOS</b></summary>
-
-  Available via [Homebrew](https://brew.sh). To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
-
+### Manual Build
 ```bash
-supabase bootstrap
+npm run build
+# Deploy the 'dist' folder to your hosting provider
 ```
 
-Or using npx:
+## 🔐 Security Features
 
-```bash
-npx supabase bootstrap
-```
+- **Row Level Security (RLS)** - Database-level access control
+- **Role-based Authentication** - Separate permissions for each user type
+- **Secure Payment Processing** - PayPal SDK integration
+- **Environment Variable Protection** - Sensitive data in environment variables
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+## 📱 Mobile Support
 
-## Docs
+The application is built mobile-first with special attention to:
+- Worker mobile interface for field operations
+- Touch-friendly booking interface for customers
+- Responsive design across all screen sizes
+- Offline-capable features for workers
 
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+## 🗺 Service Area
 
-## Breaking changes
+Currently configured for Laredo, TX area with a 25-mile service radius. Geographic boundaries are enforced through:
+- Mapbox integration for address validation
+- Service area visualization on booking forms
+- Automatic distance calculations
 
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+## 🤝 Contributing
 
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## Developing
+## 📄 License
 
-To run from source:
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-```sh
-# Go >= 1.22
-go run . help
-```
+## 📞 Support
+
+For support and questions:
+- Email: info@margaritascleaning.com
+- Phone: +1-956-XXX-XXXX
+
+## 🎉 Acknowledgments
+
+Built with modern web technologies and best practices for a seamless cleaning service experience.

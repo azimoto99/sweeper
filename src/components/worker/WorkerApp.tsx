@@ -6,6 +6,7 @@ import { useNotify } from '../../hooks/useNotify'
 import { useLocationTracking } from '../../hooks/useLocationTracking'
 import { useBookingNotifications } from '../../hooks/useBookingNotifications'
 import { MobileWorkerDashboard } from './MobileWorkerDashboard'
+import { PhotoUploader } from './PhotoUploader'
 import {
   MapPinIcon,
   ClockIcon,
@@ -351,6 +352,7 @@ function AssignmentCard({
   assignment: Assignment & { bookings: Booking & { profiles?: { full_name: string; phone?: string } } }
   onUpdateStatus: (bookingId: string, status: Booking['status']) => void 
 }) {
+  const [showPhotos, setShowPhotos] = useState(false)
   const booking = assignment.bookings
 
   const getNextStatus = (currentStatus: string) => {
@@ -363,9 +365,10 @@ function AssignmentCard({
   }
 
   const nextStatus = getNextStatus(booking.status)
+  const canTakePhotos = booking.status === 'in_progress' || booking.status === 'completed'
 
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-4">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-3">
@@ -419,13 +422,44 @@ function AssignmentCard({
               const address = encodeURIComponent(booking.address)
               window.open(`https://maps.google.com/maps?q=${address}`, '_blank')
             }}
-            className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
+            className="w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
           >
             <ArrowRightIcon className="inline h-4 w-4 mr-1" />
             Navigate
           </button>
+
+          {canTakePhotos && (
+            <button
+              onClick={() => setShowPhotos(!showPhotos)}
+              className="w-full px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-medium"
+            >
+              📷 Photos
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Photo Upload Section */}
+      {showPhotos && canTakePhotos && (
+        <div className="border-t pt-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {booking.status === 'in_progress' && (
+              <PhotoUploader
+                bookingId={booking.id}
+                workerId={assignment.worker_id}
+                type="before"
+                maxPhotos={3}
+              />
+            )}
+            <PhotoUploader
+              bookingId={booking.id}
+              workerId={assignment.worker_id}
+              type={booking.status === 'completed' ? 'after' : 'progress'}
+              maxPhotos={3}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
