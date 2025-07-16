@@ -1,19 +1,19 @@
 import toast from 'react-hot-toast'
 
 // Error types for better categorization
-export enum ErrorType {
-  AUTHENTICATION = 'authentication',
-  AUTHORIZATION = 'authorization',
-  NETWORK = 'network',
-  VALIDATION = 'validation',
-  DATABASE = 'database',
-  PAYMENT = 'payment',
-  LOCATION = 'location',
-  UNKNOWN = 'unknown'
+export const ErrorType = {
+  AUTHENTICATION: 'authentication',
+  AUTHORIZATION: 'authorization',
+  NETWORK: 'network',
+  VALIDATION: 'validation',
+  DATABASE: 'database',
+  PAYMENT: 'payment',
+  LOCATION: 'location',
+  UNKNOWN: 'unknown'
 }
 
 export interface AppError {
-  type: ErrorType
+  type: typeof ErrorType[keyof typeof ErrorType]
   message: string
   code?: string
   details?: any

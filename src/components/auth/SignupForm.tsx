@@ -8,6 +8,16 @@ import { Button } from '../ui/Button'
 import { SparklesIcon, UserPlusIcon, BriefcaseIcon } from '@heroicons/react/24/outline'
 import { handleError, showSuccess, setLoading, isLoading } from '../../utils/errorHandler'
 
+type FormData = {
+  fullName: string
+  email: string
+  password: string
+  confirmPassword: string
+  role: 'customer' | 'worker'
+  workerCode: string
+  agreeToTerms: boolean
+}
+
 const schema = yup.object({
   fullName: yup.string().required('Full name is required'),
   email: yup.string().email('Invalid email').required('Email is required'),
@@ -24,16 +34,6 @@ const schema = yup.object({
   agreeToTerms: yup.boolean().oneOf([true], 'You must agree to the terms and conditions')
 })
 
-type FormData = {
-  fullName: string
-  email: string
-  password: string
-  confirmPassword: string
-  role: 'customer' | 'worker'
-  workerCode?: string
-  agreeToTerms: boolean
-}
-
 export function SignupForm() {
   const { signUp } = useAuthContext()
   const navigate = useNavigate()
@@ -47,7 +47,8 @@ export function SignupForm() {
   } = useForm<FormData>({
     resolver: yupResolver(schema),
     defaultValues: {
-      role: 'customer'
+      role: 'customer',
+      workerCode: ''
     }
   })
 

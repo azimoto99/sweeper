@@ -15,8 +15,15 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { handleError, showSuccess } from '../../utils/errorHandler'
 
-export function NotificationCenter() {
-  const { notifications, unreadCount, loading, markAsRead, markAllAsRead, deleteNotification } = useNotifications()
+interface NotificationCenterProps {
+  notifications?: any[]
+  onClose?: () => void
+  onRefresh?: () => Promise<void>
+}
+
+export function NotificationCenter({ notifications: propsNotifications, onClose, onRefresh }: NotificationCenterProps = {}) {
+  const { notifications: hookNotifications, unreadCount, loading, markAsRead, markAllAsRead, deleteNotification } = useNotifications()
+  const notifications = propsNotifications || hookNotifications
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 

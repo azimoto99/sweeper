@@ -127,7 +127,7 @@ export function ProfilePage() {
         scheduled_date: booking.scheduled_date,
         status: booking.status,
         price: booking.price,
-        worker_name: booking.workers?.profiles?.full_name || 'Not assigned',
+        worker_name: (booking.workers as any)?.profiles?.full_name || 'Not assigned',
         rating: booking.reviews?.[0]?.rating,
         review: booking.reviews?.[0]?.comment
       })) || []

@@ -26,6 +26,7 @@ interface SubscriptionWithUser extends Subscription {
     full_name: string
     email: string
   }
+  created_at: string
 }
 
 interface SubscriptionStats {
