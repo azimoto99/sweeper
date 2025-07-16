@@ -14,7 +14,18 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "db:push": "npx supabase db push",
+    "db:push:migration": "./scripts/push-db.sh",
+    "db:reset": "npx supabase db reset",
+    "db:diff": "npx supabase db diff",
+    "db:status": "npx supabase status",
+    "db:link": "npx supabase link",
+    "db:setup": "./scripts/setup-supabase.sh",
+    "db:login": "npx supabase login",
+    "db:migrate": "./scripts/run-migration.sh",
+    "supabase:start": "npx supabase start",
+    "supabase:stop": "npx supabase stop"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

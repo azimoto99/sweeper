@@ -88,18 +88,35 @@ export function useAuth() {
       const { data: authUser } = await supabase.auth.getUser()
       if (!authUser.user) return
 
+      // Check if profile already exists
+      const { data: existingProfile } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (existingProfile) {
+        setProfile(existingProfile)
+        return
+      }
+
+      // Create new profile
       const { data, error } = await supabase
         .from('users')
         .insert({
           id: userId,
           email: authUser.user.email!,
-          full_name: authUser.user.user_metadata?.full_name || 'User',
+          full_name: authUser.user.user_metadata?.full_name || authUser.user.email?.split('@')[0] || 'User',
           role: authUser.user.user_metadata?.role || 'customer'
         })
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Error creating user profile:', error)
+        throw error
+      }
+      
       setProfile(data)
 
       // If user is a worker, create worker profile
@@ -118,6 +135,7 @@ export function useAuth() {
         }
       }
     } catch (error) {
+      console.error('Create profile error:', error)
       handleError(error, { action: 'create_profile', userId })
     }
   }
@@ -135,11 +153,16 @@ export function useAuth() {
         }
       })
 
-      if (error) return { error }
+      if (error) {
+        console.error('Supabase signup error:', error)
+        return { error }
+      }
 
-      // Profile is automatically created by database trigger
+      // Profile should be automatically created by database trigger
+      // If not, we'll create it in the auth state change handler
       return { data, error: null }
     } catch (error) {
+      console.error('Signup catch error:', error)
       return { error }
     }
   }
