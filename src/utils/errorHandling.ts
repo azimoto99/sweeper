@@ -123,11 +123,15 @@ export class ErrorHandler {
   private async sendToMonitoring(error: AppError): Promise<void> {
     try {
       // In a real app, you'd send to a service like Sentry, LogRocket, etc.
-      await fetch('/api/errors', {
+      const response = await fetch('/api/errors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(error)
       })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
     } catch (monitoringError) {
       console.error('Failed to send error to monitoring:', monitoringError)
     }
@@ -270,7 +274,10 @@ export function withErrorBoundary<P extends object>(
   fallback?: React.ComponentType<{ error: Error; resetError: () => void }>
 ) {
   return function WrappedComponent(props: P) {
-    return React.createElement(ErrorBoundary, { fallback }, React.createElement(Component, props))
+    return React.createElement(ErrorBoundary, { 
+      fallback,
+      children: React.createElement(Component, props)
+    })
   }
 }
 
