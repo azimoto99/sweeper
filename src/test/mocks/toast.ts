@@ -18,5 +18,5 @@ vi.mock('react-hot-toast', () => ({
     promise: vi.fn(),
     custom: vi.fn(),
   },
-  Toaster: () => <div data-testid="toaster">Toaster</div>,
+  Toaster: () => null,
 }))

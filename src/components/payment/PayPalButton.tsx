@@ -65,15 +65,9 @@ export function PayPalButton({ amount, description, onSuccess, onError, onCancel
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-md">
         <p className="text-red-800 text-sm">{error}</p>
-        <button
-          onClick={() => {
-            // Mock payment success for MVP
-            onSuccess(`mock_${Date.now()}`, { status: 'COMPLETED' })
-          }}
-          className="mt-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 text-sm"
-        >
-          Continue with Mock Payment (MVP)
-        </button>
+        <p className="text-red-600 text-xs mt-1">
+          Please check your PayPal configuration and try again.
+        </p>
       </div>
     )
   }
@@ -92,16 +86,6 @@ export function PayPalButton({ amount, description, onSuccess, onError, onCancel
   return (
     <div>
       <div ref={paypalRef}></div>
-      {/* Fallback button for MVP */}
-      <button
-        onClick={() => {
-          // Mock payment success for MVP
-          onSuccess(`mock_${Date.now()}`, { status: 'COMPLETED' })
-        }}
-        className="w-full mt-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm"
-      >
-        Mock Payment (MVP Mode)
-      </button>
     </div>
   )
 }

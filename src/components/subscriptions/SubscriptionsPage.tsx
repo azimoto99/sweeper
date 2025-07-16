@@ -109,15 +109,15 @@ export function SubscriptionsPage() {
       if (!plan) throw new Error('Invalid plan selected')
 
       // Create PayPal subscription
-      const response = await fetch('/api/paypal/create-subscription', {
+      const response = await fetch('http://localhost:3001/api/paypal/subscriptions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           planId: planId,
-          userId: profile.id,
-          userEmail: profile.email
+          subscriberName: profile.full_name,
+          subscriberEmail: profile.email
         })
       })
 
@@ -126,7 +126,7 @@ export function SubscriptionsPage() {
         throw new Error(errorData.message || 'Failed to create subscription')
       }
 
-      const { subscriptionId, approvalUrl } = await response.json()
+      const subscriptionData = await response.json()
 
       // Save subscription to database
       const { error: dbError } = await supabase
@@ -134,7 +134,7 @@ export function SubscriptionsPage() {
         .insert({
           user_id: profile.id,
           tier: planId,
-          paypal_subscription_id: subscriptionId,
+          paypal_subscription_id: subscriptionData.id,
           status: 'active',
           next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           discount_percentage: plan.discount
@@ -150,8 +150,9 @@ export function SubscriptionsPage() {
         'success'
       )
 
-      // Redirect to PayPal approval
-      window.location.href = approvalUrl
+      // Subscription created successfully
+      showSuccess('Subscription created successfully!')
+      await fetchCurrentSubscription()
       
     } catch (error) {
       handleError(error, { action: 'subscribe', userId: profile.id })
@@ -167,13 +168,13 @@ export function SubscriptionsPage() {
       setLoading('cancel_subscription', true, 'Canceling subscription...')
       
       // Cancel PayPal subscription
-      const response = await fetch('/api/paypal/cancel-subscription', {
+      const response = await fetch(`http://localhost:3001/api/paypal/subscriptions/${currentSubscription.paypal_subscription_id}/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          subscriptionId: currentSubscription.paypal_subscription_id
+          reason: 'Customer request'
         })
       })
 
@@ -219,7 +220,7 @@ export function SubscriptionsPage() {
       if (!newPlan) throw new Error('Invalid plan selected')
 
       // Update PayPal subscription
-      const response = await fetch('/api/paypal/update-subscription', {
+      const response = await fetch(`http://localhost:3001/api/paypal/subscriptions/${currentSubscription.paypal_subscription_id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

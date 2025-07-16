@@ -101,6 +101,22 @@ export function useAuth() {
 
       if (error) throw error
       setProfile(data)
+
+      // If user is a worker, create worker profile
+      if (data.role === 'worker') {
+        const { error: workerError } = await supabase
+          .from('workers')
+          .insert({
+            profile_id: data.id,
+            status: 'offline',
+            assigned_bookings_count: 0
+          })
+        
+        if (workerError) {
+          console.error('Error creating worker profile:', workerError)
+          // Don't throw error, just log it - user profile is still created
+        }
+      }
     } catch (error) {
       handleError(error, { action: 'create_profile', userId })
     }

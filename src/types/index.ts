@@ -9,14 +9,24 @@ export interface User {
 }
 
 export interface Worker extends User {
+  profile_id: string;
   status: 'available' | 'en_route' | 'on_job' | 'break' | 'offline';
   current_location?: {
     lat: number;
     lng: number;
   };
+  current_location_lat?: number;
+  current_location_lng?: number;
   last_location_update?: string;
   assigned_bookings_count: number;
   vehicle_info?: string;
+  emergency_contact?: string;
+  emergency_phone?: string;
+  license_number?: string;
+  hourly_rate?: number;
+  max_radius?: number;
+  skills?: string[];
+  notes?: string;
 }
 
 export interface Booking {
@@ -27,7 +37,7 @@ export interface Booking {
   scheduled_date: string;
   scheduled_time: string;
   address: string;
-  status: 'pending' | 'assigned' | 'en_route' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'pending' | 'assigned' | 'confirmed' | 'en_route' | 'in_progress' | 'completed' | 'cancelled';
   price: number;
   notes?: string;
   paypal_order_id?: string;

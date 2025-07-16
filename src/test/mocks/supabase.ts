@@ -19,7 +19,7 @@ vi.mock('@supabase/auth-helpers-react', () => ({
 
 // Mock Supabase auth UI
 vi.mock('@supabase/auth-ui-react', () => ({
-  Auth: ({ children }: { children?: React.ReactNode }) => children || <div>Auth UI</div>,
+  Auth: ({ children }: { children?: any }) => children || null,
 }))
 
 vi.mock('@supabase/auth-ui-shared', () => ({

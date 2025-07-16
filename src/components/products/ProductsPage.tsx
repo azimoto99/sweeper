@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Product } from '../../types'
+import { useAuthContext } from '../../contexts/AuthContext'
+import { useNotify } from '../../hooks/useNotify'
 import { ShoppingCartIcon, StarIcon } from '@heroicons/react/24/outline'
 
 // Mock products for MVP
@@ -68,6 +70,8 @@ const MOCK_PRODUCTS: Product[] = [
 ]
 
 export function ProductsPage() {
+  const { profile } = useAuthContext()
+  const notify = useNotify()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [cart, setCart] = useState<{ [key: string]: number }>({})
@@ -79,12 +83,50 @@ export function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      // For MVP, use mock data
-      setProducts(MOCK_PRODUCTS)
+      // Fetch real products from database
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('active', true)
+        .order('created_at', { ascending: true })
+
+      if (error) throw error
+
+      // If no products exist, insert mock data
+      if (!data || data.length === 0) {
+        await insertMockProducts()
+        const { data: mockData, error: mockError } = await supabase
+          .from('products')
+          .select('*')
+          .eq('active', true)
+          .order('created_at', { ascending: true })
+        
+        if (mockError) throw mockError
+        setProducts(mockData || [])
+      } else {
+        setProducts(data)
+      }
     } catch (error) {
       console.error('Error fetching products:', error)
+      // Fallback to mock data if database fails
+      setProducts(MOCK_PRODUCTS)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const insertMockProducts = async () => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .insert(MOCK_PRODUCTS.map(product => ({
+          ...product,
+          id: undefined // Let database generate UUID
+        })))
+      
+      if (error) throw error
+    } catch (error) {
+      console.error('Error inserting mock products:', error)
     }
   }
 
@@ -121,6 +163,95 @@ export function ProductsPage() {
       const product = products.find(p => p.id === productId)
       return sum + (product ? product.price * count : 0)
     }, 0)
+  }
+
+  const handleCheckout = async () => {
+    if (!profile) {
+      notify.error('Please sign in to checkout')
+      return
+    }
+
+    if (Object.keys(cart).length === 0) {
+      notify.error('Your cart is empty')
+      return
+    }
+
+    setLoading(true)
+    
+    try {
+      // Create order in database
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: profile.id,
+          total: getTotalPrice(),
+          status: 'pending',
+          paypal_order_id: `temp_${Date.now()}`, // Temporary ID
+          shipping_address: {
+            street: profile.address || '',
+            city: 'Laredo',
+            state: 'TX',
+            zip_code: '78040',
+            country: 'US'
+          }
+        })
+        .select()
+        .single()
+
+      if (orderError) throw orderError
+
+      // Create order items
+      const orderItems = Object.entries(cart).map(([productId, count]) => {
+        const product = products.find(p => p.id === productId)
+        return {
+          order_id: order.id,
+          product_id: productId,
+          quantity: count,
+          price: product?.price || 0
+        }
+      })
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems)
+
+      if (itemsError) throw itemsError
+
+      // Create PayPal order
+      const response = await fetch('http://localhost:3001/api/paypal/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: getTotalPrice(),
+          currency: 'USD',
+          description: `Order #${order.id.slice(-8)} - ${Object.keys(cart).length} items`
+        })
+      })
+
+      if (!response.ok) throw new Error('Failed to create PayPal order')
+
+      const paypalOrder = await response.json()
+
+      // Update order with PayPal order ID
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({ paypal_order_id: paypalOrder.id })
+        .eq('id', order.id)
+
+      if (updateError) throw updateError
+
+      // Clear cart and show success
+      setCart({})
+      notify.success('Order placed successfully!')
+      
+    } catch (error) {
+      console.error('Checkout error:', error)
+      notify.error('Failed to place order. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (loading) {
@@ -267,8 +398,12 @@ export function ProductsPage() {
               <span>Total:</span>
               <span>${getTotalPrice().toFixed(2)}</span>
             </div>
-            <button className="w-full px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">
-              Checkout
+            <button 
+              onClick={handleCheckout}
+              disabled={loading}
+              className="w-full px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Processing...' : 'Checkout'}
             </button>
           </div>
         </div>

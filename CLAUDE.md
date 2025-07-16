@@ -20,6 +20,18 @@ npm run lint
 
 # Preview production build
 npm run preview
+
+# Run tests
+npm run test
+npm run test:ui     # Run tests with UI
+npm run test:run    # Run tests once
+npm run test:coverage # Run tests with coverage
+
+# Run full stack (frontend + PayPal server)
+npm run dev:full
+
+# Start PayPal server only
+npm run server
 ```
 
 ## Architecture Overview
@@ -32,6 +44,7 @@ npm run preview
 - **Payments**: PayPal Server SDK for checkout and subscriptions
 - **Drag & Drop**: react-dnd for dispatch interface
 - **Forms**: react-hook-form with yup validation
+- **Testing**: Vitest with React Testing Library
 
 ### Core Business Logic
 
@@ -61,7 +74,7 @@ npm run preview
 - Custom PostgreSQL types for enums (user_role, worker_status, etc.)
 
 **Key Tables**:
-- `profiles`: Extends auth.users with business data
+- `users`: Extends auth.users with business data
 - `workers`: Location tracking and status management
 - `bookings`: Service requests with geocoded addresses
 - `worker_locations`: Real-time GPS tracking history
@@ -117,7 +130,7 @@ Copy `.env.example` to `.env` and configure:
 
 ## Vector UI Design System
 
-**Unified Styling Architecture**: The app now uses a cohesive Vector UI design system (`src/styles/design-system.css`) that provides:
+**Unified Styling Architecture**: The app uses a cohesive Vector UI design system (`src/styles/design-system.css`) that provides:
 - **Design Tokens**: Comprehensive color palette, typography scale, spacing system, and animation presets
 - **Component Classes**: Unified button system (`.btn`, `.btn-primary`, etc.), card variants (`.card`, `.card-elevated`), and input styling
 - **Vector Icons**: Consistent icon sizing system (`.icon-xs` through `.icon-2xl`) with interactive effects
@@ -146,9 +159,21 @@ Copy `.env.example` to `.env` and configure:
 
 **Vector UI Consistency**: All components follow the Vector UI design system for consistent look and feel across the application.
 
+## Testing Framework
+
+**Vitest Configuration** (`vitest.config.ts`):
+- Test environment: jsdom for React components
+- Global test utilities available
+- Coverage reporting with v8 provider
+- Test setup file: `src/test/setup.ts`
+
+**Test Structure**:
+- Unit tests in `__tests__` folders next to components
+- Mocks in `src/test/mocks/` for external dependencies
+- React Testing Library for component testing
+
 ## Known Limitations
 
-- App.tsx still contains default Vite template (needs router setup)
-- No test framework configured yet
-- PayPal integration implemented but not fully wired
+- PayPal integration implemented but not fully wired to production
 - Worker mobile interface and customer booking system in progress
+- Some admin routes are placeholder components

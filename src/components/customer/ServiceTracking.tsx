@@ -40,8 +40,28 @@ export function ServiceTracking() {
         })
         .subscribe()
 
+      // Subscribe to worker location updates
+      const locationSubscription = supabase
+        .channel('worker-location-updates')
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'workers'
+        }, (payload) => {
+          if (worker && payload.new.id === worker.id) {
+            setWorker(prev => prev ? {
+              ...prev,
+              current_location_lat: payload.new.current_location_lat,
+              current_location_lng: payload.new.current_location_lng,
+              status: payload.new.status
+            } : null)
+          }
+        })
+        .subscribe()
+
       return () => {
         subscription.unsubscribe()
+        locationSubscription.unsubscribe()
       }
     }
   }, [bookingId])

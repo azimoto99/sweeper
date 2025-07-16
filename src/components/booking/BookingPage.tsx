@@ -78,6 +78,13 @@ const getServiceTypes = () => {
 
 const SERVICE_TYPES = getServiceTypes()
 
+// Helper function to get subscription discount
+const getSubscriptionDiscount = (profile: any) => {
+  // In a real app, this would check the user's active subscription
+  // For now, return 0 (no discount)
+  return 0
+}
+
 export function BookingPage() {
   const { profile } = useAuthContext()
   const notify = useNotify()
@@ -124,7 +131,7 @@ export function BookingPage() {
           distanceFromCenter,
           addOns: formData.add_ons,
           isRecurring: formData.is_recurring,
-          subscriptionDiscount: 0 // TODO: Get from user's subscription
+          subscriptionDiscount: getSubscriptionDiscount(profile)
         })
 
         setPricingResult(pricing)

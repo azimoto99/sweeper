@@ -43,7 +43,7 @@ export function CustomerDashboard() {
           *,
           worker:workers(full_name)
         `)
-        .eq('customer_id', profile?.id)
+        .eq('user_id', profile?.id)
         .order('created_at', { ascending: false })
         .limit(5)
 
@@ -55,7 +55,7 @@ export function CustomerDashboard() {
       const { data: allBookings, error: statsError } = await supabase
         .from('bookings')
         .select('status, total_amount, scheduled_date')
-        .eq('customer_id', profile?.id)
+        .eq('user_id', profile?.id)
 
       if (statsError) throw statsError
 

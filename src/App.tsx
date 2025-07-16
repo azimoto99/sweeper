@@ -10,6 +10,8 @@ import { SignupForm } from './components/auth/SignupForm'
 import { DispatchCenter } from './components/admin/DispatchCenter'
 import { AnalyticsDashboard } from './components/admin/AnalyticsDashboard'
 import { ServiceManagement } from './components/admin/ServiceManagement'
+import { WorkerManagement } from './components/admin/WorkerManagement'
+import { BookingManagement } from './components/admin/BookingManagement'
 import { Layout } from './components/layout/Layout'
 import { Dashboard } from './components/dashboard/Dashboard'
 import { LandingPage } from './components/landing/LandingPage'
@@ -135,8 +137,8 @@ function App() {
 function AdminRoutes() {
   return (
     <Routes>
-      <Route path="workers" element={<div>Worker Management</div>} />
-      <Route path="bookings" element={<div>Booking Management</div>} />
+      <Route path="workers" element={<WorkerManagement />} />
+      <Route path="bookings" element={<BookingManagement />} />
       <Route path="analytics" element={<AnalyticsDashboard />} />
       <Route path="services" element={<ServiceManagement />} />
       <Route path="settings" element={<div>Settings</div>} />
