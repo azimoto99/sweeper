@@ -62,17 +62,6 @@ export function ServiceTracking() {
     }
   }, [bookingId])
 
-  // Set up worker location tracking when worker is assigned
-  useEffect(() => {
-    if (worker?.id && (booking?.status === 'assigned' || booking?.status === 'en_route')) {
-      startLocationTracking()
-    } else {
-      stopLocationTracking()
-    }
-
-    return () => stopLocationTracking()
-  }, [worker?.id, booking?.status, startLocationTracking, stopLocationTracking])
-
   const startLocationTracking = useCallback(() => {
     if (!worker?.id) return
 
@@ -120,6 +109,17 @@ export function ServiceTracking() {
     }
     setIsLocationLive(false)
   }, [])
+
+  // Set up worker location tracking when worker is assigned
+  useEffect(() => {
+    if (worker?.id && (booking?.status === 'assigned' || booking?.status === 'en_route')) {
+      startLocationTracking()
+    } else {
+      stopLocationTracking()
+    }
+
+    return () => stopLocationTracking()
+  }, [worker?.id, booking?.status, startLocationTracking, stopLocationTracking])
 
   const fetchLocationHistory = async () => {
     if (!worker?.id) return

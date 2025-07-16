@@ -120,9 +120,9 @@ export class ErrorHandler {
     return userFriendlyCodes.includes(code)
   }
 
-  private sendToMonitoring(error: AppError): Promise<void> {
+  private sendToMonitoring(error: AppError): void {
     // In a real app, you'd send to a service like Sentry, LogRocket, etc.
-    return fetch('/api/errors', {
+    fetch('/api/errors', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(error)
