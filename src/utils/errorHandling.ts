@@ -120,21 +120,21 @@ export class ErrorHandler {
     return userFriendlyCodes.includes(code)
   }
 
-  private async sendToMonitoring(error: AppError): Promise<void> {
-    try {
-      // In a real app, you'd send to a service like Sentry, LogRocket, etc.
-      const response = await fetch('/api/errors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(error)
-      })
-      
+  private sendToMonitoring(error: AppError): Promise<void> {
+    // In a real app, you'd send to a service like Sentry, LogRocket, etc.
+    return fetch('/api/errors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(error)
+    })
+    .then(response => {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
       }
-    } catch (monitoringError) {
+    })
+    .catch(monitoringError => {
       console.error('Failed to send error to monitoring:', monitoringError)
-    }
+    })
   }
 
   getErrorLog(): AppError[] {

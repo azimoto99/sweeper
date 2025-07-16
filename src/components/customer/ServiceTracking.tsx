@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { MapPinIcon, ClockIcon, PhoneIcon, UserIcon, ArrowPathIcon, SignalIcon } from '@heroicons/react/24/outline'
 import { supabase } from '../../lib/supabase'
@@ -71,9 +71,9 @@ export function ServiceTracking() {
     }
 
     return () => stopLocationTracking()
-  }, [worker?.id, booking?.status])
+  }, [worker?.id, booking?.status, startLocationTracking, stopLocationTracking])
 
-  const startLocationTracking = () => {
+  const startLocationTracking = useCallback(() => {
     if (!worker?.id) return
 
     // Subscribe to worker location updates
@@ -112,14 +112,14 @@ export function ServiceTracking() {
     return () => {
       locationSubscription.unsubscribe()
     }
-  }
+  }, [worker?.id, booking])
 
-  const stopLocationTracking = () => {
+  const stopLocationTracking = useCallback(() => {
     if (locationUpdateRef.current) {
       clearInterval(locationUpdateRef.current)
     }
     setIsLocationLive(false)
-  }
+  }, [])
 
   const fetchLocationHistory = async () => {
     if (!worker?.id) return
