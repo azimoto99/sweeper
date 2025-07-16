@@ -6,10 +6,10 @@ To fix email verification links redirecting to localhost instead of your product
 
 ### **Step 1: Update Your Environment Variables**
 
-Add this to your `.env` file (replace with your actual Render URL):
+Add this to your `.env` file (using the actual Render URL):
 
 ```bash
-VITE_SITE_URL=https://your-actual-app-name.onrender.com
+VITE_SITE_URL=https://sweeper-margaritas-cleaning.onrender.com
 ```
 
 ### **Step 2: Configure Supabase Dashboard**
@@ -23,13 +23,13 @@ VITE_SITE_URL=https://your-actual-app-name.onrender.com
 
    **Site URL:**
    ```
-   https://your-actual-app-name.onrender.com
+   https://sweeper-margaritas-cleaning.onrender.com
    ```
 
    **Additional Redirect URLs** (add all these):
    ```
-   https://your-actual-app-name.onrender.com/auth/callback
-   https://your-actual-app-name.onrender.com/auth/email-verified
+   https://sweeper-margaritas-cleaning.onrender.com/auth/callback
+   https://sweeper-margaritas-cleaning.onrender.com/auth/email-verified
    http://localhost:5173/auth/callback
    http://localhost:5173/auth/email-verified
    ```
@@ -37,7 +37,7 @@ VITE_SITE_URL=https://your-actual-app-name.onrender.com
 ### **Step 3: Update Environment Variables on Render**
 
 In your Render dashboard, add:
-- `VITE_SITE_URL` = `https://your-actual-app-name.onrender.com`
+- `VITE_SITE_URL` = `https://sweeper-margaritas-cleaning.onrender.com`
 
 ### **Step 4: Test**
 

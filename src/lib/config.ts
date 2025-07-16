@@ -1,9 +1,9 @@
 // Site configuration for different environments
 
 export const getSiteUrl = () => {
-  // Production URL - replace with your actual Render deployment URL
+  // Production URL - using actual Render deployment URL
   if (import.meta.env.PROD) {
-    return import.meta.env.VITE_SITE_URL || 'https://your-app-name.onrender.com'
+    return import.meta.env.VITE_SITE_URL || 'https://sweeper-margaritas-cleaning.onrender.com'
   }
   
   // Development URL

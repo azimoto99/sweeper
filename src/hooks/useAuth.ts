@@ -27,12 +27,16 @@ export function useAuth() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', event, session?.user?.id)
       setSession(session)
       setUser(session?.user ?? null)
       setIsVerified(session?.user?.email_confirmed_at != null)
       
       if (session?.user) {
-        await fetchProfile(session.user.id)
+        // For new signups, we need to ensure profile creation
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          await fetchProfile(session.user.id)
+        }
       } else {
         setProfile(null)
       }
@@ -64,6 +68,7 @@ export function useAuth() {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId)
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -71,23 +76,31 @@ export function useAuth() {
         .single()
 
       if (error) {
+        console.log('Profile fetch error:', error)
         handleError(error, { action: 'fetch_profile', userId })
         // If profile doesn't exist, create one
         if (error.code === 'PGRST116') {
+          console.log('Profile not found, creating new profile...')
           await createProfile(userId)
         }
       } else {
+        console.log('Profile found:', data)
         setProfile(data)
       }
     } catch (error) {
+      console.error('Profile fetch catch error:', error)
       handleError(error, { action: 'fetch_profile_catch', userId })
     }
   }
 
   const createProfile = async (userId: string) => {
     try {
+      console.log('Creating profile for user:', userId)
       const { data: authUser } = await supabase.auth.getUser()
-      if (!authUser.user) return
+      if (!authUser.user) {
+        console.error('No auth user found')
+        return
+      }
 
       // Check if profile already exists
       const { data: existingProfile } = await supabase
@@ -97,19 +110,24 @@ export function useAuth() {
         .single()
 
       if (existingProfile) {
+        console.log('Profile already exists:', existingProfile)
         setProfile(existingProfile)
         return
       }
 
-      // Create new profile
+      // Create new profile with proper data
+      const profileData = {
+        id: userId,
+        email: authUser.user.email!,
+        full_name: authUser.user.user_metadata?.full_name || authUser.user.email?.split('@')[0] || 'User',
+        role: authUser.user.user_metadata?.role || 'customer'
+      }
+      
+      console.log('Creating profile with data:', profileData)
+      
       const { data, error } = await supabase
         .from('users')
-        .insert({
-          id: userId,
-          email: authUser.user.email!,
-          full_name: authUser.user.user_metadata?.full_name || authUser.user.email?.split('@')[0] || 'User',
-          role: authUser.user.user_metadata?.role || 'customer'
-        })
+        .insert(profileData)
         .select()
         .single()
 
@@ -118,10 +136,12 @@ export function useAuth() {
         throw error
       }
       
+      console.log('Profile created successfully:', data)
       setProfile(data)
 
       // If user is a worker, create worker profile
       if (data.role === 'worker') {
+        console.log('Creating worker profile...')
         const { error: workerError } = await supabase
           .from('workers')
           .insert({
@@ -133,6 +153,8 @@ export function useAuth() {
         if (workerError) {
           console.error('Error creating worker profile:', workerError)
           // Don't throw error, just log it - user profile is still created
+        } else {
+          console.log('Worker profile created successfully')
         }
       }
     } catch (error) {
@@ -143,6 +165,7 @@ export function useAuth() {
 
   const signUp = async (email: string, password: string, fullName: string, role: 'customer' | 'worker' = 'customer') => {
     try {
+      console.log('Starting signup process...', { email, fullName, role })
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -160,8 +183,15 @@ export function useAuth() {
         return { error }
       }
 
-      // Profile should be automatically created by database trigger
-      // If not, we'll create it in the auth state change handler
+      console.log('Signup successful:', data)
+
+      // For confirmed users (immediate signup without email verification),
+      // create profile immediately
+      if (data.user && data.session) {
+        console.log('User confirmed immediately, creating profile...')
+        await createProfile(data.user.id)
+      }
+
       return { data, error: null }
     } catch (error) {
       console.error('Signup catch error:', error)
