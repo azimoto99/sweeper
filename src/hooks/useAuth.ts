@@ -37,9 +37,9 @@ export function useAuth() {
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           await fetchProfile(session.user.id)
         }
-        // Handle email confirmation - create profile if it doesn't exist
-        else if (event === 'SIGNED_UP' || (event === 'SIGNED_IN' && session.user.email_confirmed_at)) {
-          console.log('User confirmed email, ensuring profile exists...')
+        // Handle initial session and user updates
+        else if (event === 'INITIAL_SESSION' || event === 'USER_UPDATED') {
+          console.log('User session established or updated, ensuring profile exists...')
           await fetchProfile(session.user.id)
         }
       } else {
