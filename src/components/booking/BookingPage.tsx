@@ -142,7 +142,7 @@ export function BookingPage() {
     } else {
       setPricingResult(null)
     }
-  }, [formData, locationData])
+  }, [formData, locationData, profile])
 
   const totalPrice = pricingResult?.totalPrice || (selectedService?.config.basePrice || 0)
 

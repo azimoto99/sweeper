@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuthContext } from '../../contexts/AuthContext'
 import {
   SparklesIcon,
   CheckCircleIcon,
@@ -102,9 +103,18 @@ const WHY_CHOOSE_US = [
 ]
 
 export function LandingPage() {
+  const { user, profile } = useAuthContext()
+  const navigate = useNavigate()
   const [isVisible, setIsVisible] = useState(false)
   const [activeService, setActiveService] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (user && profile) {
+      navigate('/dashboard')
+    }
+  }, [user, profile, navigate])
 
   useEffect(() => {
     setIsVisible(true)

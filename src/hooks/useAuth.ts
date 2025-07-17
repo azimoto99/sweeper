@@ -33,8 +33,13 @@ export function useAuth() {
       setIsVerified(session?.user?.email_confirmed_at != null)
       
       if (session?.user) {
-        // For new signups, we need to ensure profile creation
+        // Handle different auth events
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          await fetchProfile(session.user.id)
+        }
+        // Handle email confirmation - create profile if it doesn't exist
+        else if (event === 'SIGNED_UP' || (event === 'SIGNED_IN' && session.user.email_confirmed_at)) {
+          console.log('User confirmed email, ensuring profile exists...')
           await fetchProfile(session.user.id)
         }
       } else {
@@ -166,6 +171,8 @@ export function useAuth() {
   const signUp = async (email: string, password: string, fullName: string, role: 'customer' | 'worker' = 'customer') => {
     try {
       console.log('Starting signup process...', { email, fullName, role })
+      
+      // First, sign up the user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -185,8 +192,14 @@ export function useAuth() {
 
       console.log('Signup successful:', data)
 
-      // For confirmed users (immediate signup without email verification),
-      // create profile immediately
+      // If user is created but not confirmed (email verification required)
+      if (data.user && !data.session) {
+        console.log('User created, email verification required')
+        // We'll create the profile when they confirm their email
+        return { data, error: null }
+      }
+
+      // If user is immediately confirmed (no email verification)
       if (data.user && data.session) {
         console.log('User confirmed immediately, creating profile...')
         await createProfile(data.user.id)
@@ -299,13 +312,24 @@ export function useAuth() {
     if (!user?.email) return { error: new Error('No email found') }
 
     try {
+      console.log('Resending verification email to:', user.email)
       const { data, error } = await supabase.auth.resend({
         type: 'signup',
-        email: user.email
+        email: user.email,
+        options: {
+          emailRedirectTo: getAuthCallbackUrl()
+        }
       })
 
-      return { data, error }
+      if (error) {
+        console.error('Resend verification error:', error)
+        return { error }
+      }
+
+      console.log('Verification email resent successfully:', data)
+      return { data, error: null }
     } catch (error) {
+      console.error('Resend verification catch error:', error)
       return { error }
     }
   }

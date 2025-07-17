@@ -10,18 +10,72 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
+        // New primary palette - Thistle (purple-pink)
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+          50: '#f8f3f9',
+          100: '#f2e8f4',
+          200: '#ebdcee',
+          300: '#e4d0e8',
+          400: '#dec5e3',
+          500: '#dec5e3', // Main thistle color
+          600: '#bd8bc7',
+          700: '#9d53ab',
+          800: '#683772',
+          900: '#341c39',
         },
+        // Columbia Blue
+        columbia: {
+          50: '#f5fbff',
+          100: '#ebf8fe',
+          200: '#e2f4fe',
+          300: '#d8f1fd',
+          400: '#cdedfd',
+          500: '#cdedfd', // Main columbia blue
+          600: '#76cdf9',
+          700: '#1eaef6',
+          800: '#0778b0',
+          900: '#043c58',
+        },
+        // Uranian Blue
+        uranian: {
+          50: '#f0f8ff',
+          100: '#e1f1ff',
+          200: '#d2eafe',
+          300: '#c3e2fe',
+          400: '#b6dcfe',
+          500: '#b6dcfe', // Main uranian blue
+          600: '#5eb3fd',
+          700: '#098afb',
+          800: '#035cab',
+          900: '#012e55',
+        },
+        // Celeste (cyan-blue)
+        celeste: {
+          50: '#edfefe',
+          100: '#dcfcfd',
+          200: '#cafbfd',
+          300: '#b9f9fc',
+          400: '#a9f8fb',
+          500: '#a9f8fb', // Main celeste
+          600: '#57f2f7',
+          700: '#0be8f0',
+          800: '#089ba0',
+          900: '#044d50',
+        },
+        // Fluorescent Cyan
+        fluorescent: {
+          50: '#e6fdfa',
+          100: '#cdfcf5',
+          200: '#b4faf0',
+          300: '#9bf9eb',
+          400: '#81f7e5',
+          500: '#81f7e5', // Main fluorescent cyan
+          600: '#3bf3d7',
+          700: '#0ed5b7',
+          800: '#098e7a',
+          900: '#05473d',
+        },
+        // Keep some original colors for compatibility
         emerald: {
           50: '#ecfdf5',
           100: '#d1fae5',
@@ -33,18 +87,6 @@ export default {
           700: '#047857',
           800: '#065f46',
           900: '#064e3b',
-        },
-        purple: {
-          50: '#faf5ff',
-          100: '#f3e8ff',
-          200: '#e9d5ff',
-          300: '#d8b4fe',
-          400: '#c084fc',
-          500: '#a855f7',
-          600: '#9333ea',
-          700: '#7c3aed',
-          800: '#6b21a8',
-          900: '#581c87',
         },
         gray: {
           50: '#f8fafc',

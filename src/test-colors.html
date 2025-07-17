@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Accessibility Test - Sweeper Pastel Theme</title>
+    <link href="./index.css" rel="stylesheet">
+    <style>
+        .color-test {
+            padding: 1rem;
+            margin: 0.5rem;
+            border-radius: 0.5rem;
+            display: inline-block;
+            min-width: 200px;
+        }
+        .test-section {
+            margin: 2rem 0;
+        }
+        .contrast-info {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body class="p-8 bg-gray-50">
+    <h1 class="text-4xl font-bold mb-8 gradient-text">Sweeper Pastel Theme - Color Accessibility Test</h1>
+    
+    <div class="test-section">
+        <h2 class="text-2xl font-semibold mb-4">Button Tests</h2>
+        <div class="space-y-4">
+            <div>
+                <button class="btn btn-primary btn-md mr-4">Primary Button</button>
+                <button class="btn btn-secondary btn-md mr-4">Secondary Button</button>
+                <button class="btn btn-ghost btn-md">Ghost Button</button>
+            </div>
+            <div>
+                <button class="btn btn-primary btn-sm mr-4">Small Primary</button>
+                <button class="btn btn-primary btn-lg mr-4">Large Primary</button>
+                <button class="btn btn-primary btn-xl">XL Primary</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="text-2xl font-semibold mb-4">Badge Tests</h2>
+        <div class="space-y-4">
+            <div>
+                <span class="badge badge-primary mr-2">Primary Badge</span>
+                <span class="badge badge-success mr-2">Success Badge</span>
+                <span class="badge badge-info mr-2">Info Badge</span>
+                <span class="badge badge-secondary mr-2">Secondary Badge</span>
+            </div>
+            <div>
+                <span class="badge badge-warning mr-2">Warning Badge</span>
+                <span class="badge badge-error mr-2">Error Badge</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="text-2xl font-semibold mb-4">Background Color Tests</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <!-- Thistle/Primary Colors -->
+            <div class="color-test" style="background-color: #f8f3f9; color: #341c39;">
+                <strong>Primary 50 bg / Primary 900 text</strong>
+                <div class="contrast-info">Light thistle background with dark text</div>
+                <p>This is sample text to test readability. Lorem ipsum dolor sit amet.</p>
+            </div>
+            
+            <div class="color-test" style="background-color: #dec5e3; color: #341c39;">
+                <strong>Primary 500 bg / Primary 900 text</strong>
+                <div class="contrast-info">Main thistle background with dark text</div>
+                <p>This is sample text to test readability. Lorem ipsum dolor sit amet.</p>
+            </div>
+
+            <!-- Columbia Blue Colors -->
+            <div class="color-test" style="background-color: #f5fbff; color: #043c58;">
+                <strong>Columbia 50 bg / Columbia 900 text</strong>
+                <div class="contrast-info">Light blue background with dark text</div>
+                <p>This is sample text to test readability. Lorem ipsum dolor sit amet.</p>
+            </div>
+
+            <div class="color-test" style="background-color: #cdedfd; color: #043c58;">
+                <strong>Columbia 500 bg / Columbia 900 text</strong>
+                <div class="contrast-info">Main columbia blue background with dark text</div>
+                <p>This is sample text to test readability. Lorem ipsum dolor sit amet.</p>
+            </div>
+
+            <!-- Uranian Blue Colors -->
+            <div class="color-test" style="background-color: #f0f8ff; color: #012e55;">
+                <strong>Uranian 50 bg / Uranian 900 text</strong>
+                <div class="contrast-info">Light uranian blue background with dark text</div>
+                <p>This is sample text to test readability. Lorem ipsum dolor sit amet.</p>
+            </div>
+
+            <div class="color-test" style="background-color: #b6dcfe; color: #012e55;">
+                <strong>Uranian 500 bg / Uranian 900 text</strong>
+                <div class="contrast-info">Main uranian blue background with dark text</div>
+                <p>This is sample text to test readability. Lorem ipsum dolor sit amet.</p>
+            </div>
+
+            <!-- Celeste Colors -->
+            <div class="color-test" style="background-color: #edfefe; color: #044d50;">
+                <strong>Celeste 50 bg / Celeste 900 text</strong>
+                <div class="contrast-info">Light celeste background with dark text</div>
+                <p>This is sample text to test readability. Lorem ipsum dolor sit amet.</p>
+            </div>
+
+            <div class="color-test" style="background-color: #a9f8fb; color: #044d50;">
+                <strong>Celeste 500 bg / Celeste 900 text</strong>
+                <div class="contrast-info">Main celeste background with dark text</div>
+                <p>This is sample text to test readability. Lorem ipsum dolor sit amet.</p>
+            </div>
+
+            <!-- Fluorescent Cyan Colors -->
+            <div class="color-test" style="background-color: #e6fdfa; color: #05473d;">
+                <strong>Fluorescent 50 bg / Fluorescent 900 text</strong>
+                <div class="contrast-info">Light fluorescent cyan background with dark text</div>
+                <p>This is sample text to test readability. Lorem ipsum dolor sit amet.</p>
+            </div>
+
+            <div class="color-test" style="background-color: #81f7e5; color: #05473d;">
+                <strong>Fluorescent 500 bg / Fluorescent 900 text</strong>
+                <div class="contrast-info">Main fluorescent cyan background with dark text</div>
+                <p>This is sample text to test readability. Lorem ipsum dolor sit amet.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="text-2xl font-semibold mb-4">Gradient Tests</h2>
+        <div class="space-y-4">
+            <div class="gradient-primary p-6 rounded-lg text-white">
+                <h3 class="text-xl font-semibold">Primary Gradient</h3>
+                <p>This text should be clearly readable on the primary gradient background.</p>
+            </div>
+            
+            <div class="gradient-secondary p-6 rounded-lg text-gray-900">
+                <h3 class="text-xl font-semibold">Secondary Gradient</h3>
+                <p>This text should be clearly readable on the secondary gradient background.</p>
+            </div>
+            
+            <div class="gradient-accent p-6 rounded-lg text-white">
+                <h3 class="text-xl font-semibold">Accent Gradient</h3>
+                <p>This text should be clearly readable on the accent gradient background.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="text-2xl font-semibold mb-4">Text Gradient Tests</h2>
+        <div class="space-y-4">
+            <h3 class="text-3xl font-bold gradient-text">Primary Text Gradient</h3>
+            <h3 class="text-3xl font-bold gradient-text-accent">Accent Text Gradient</h3>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="text-2xl font-semibold mb-4">Card Tests</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="card p-6">
+                <h3 class="text-lg font-semibold mb-2">Basic Card</h3>
+                <p class="text-gray-600">This is a basic card with standard text colors for readability testing.</p>
+                <button class="btn btn-primary btn-sm mt-4">Action Button</button>
+            </div>
+            
+            <div class="card-elevated p-6">
+                <h3 class="text-lg font-semibold mb-2">Elevated Card</h3>
+                <p class="text-gray-600">This is an elevated card with shadow effects and readable text.</p>
+                <button class="btn btn-secondary btn-sm mt-4">Secondary Action</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="text-2xl font-semibold mb-4">Form Element Tests</h2>
+        <div class="space-y-4 max-w-md">
+            <input type="text" class="input" placeholder="Test input field">
+            <textarea class="input" rows="3" placeholder="Test textarea"></textarea>
+            <select class="input">
+                <option>Test select option 1</option>
+                <option>Test select option 2</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="text-2xl font-semibold mb-4">Accessibility Notes</h2>
+        <div class="bg-white p-6 rounded-lg border">
+            <h3 class="font-semibold mb-2">WCAG AA Compliance</h3>
+            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                <li>All text combinations should have a contrast ratio of at least 4.5:1</li>
+                <li>Large text (18pt+ or 14pt+ bold) should have at least 3:1 contrast</li>
+                <li>Interactive elements should have clear focus states</li>
+                <li>Color should not be the only way to convey information</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

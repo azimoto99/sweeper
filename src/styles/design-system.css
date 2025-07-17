@@ -2,18 +2,69 @@
 
 /* ===== DESIGN TOKENS ===== */
 :root {
-  /* Vector UI Color Palette - Unified System */
-  --primary-50: #f0f9ff;
-  --primary-100: #e0f2fe;
-  --primary-200: #bae6fd;
-  --primary-300: #7dd3fc;
-  --primary-400: #38bdf8;
-  --primary-500: #0ea5e9;
-  --primary-600: #0284c7;
-  --primary-700: #0369a1;
-  --primary-800: #075985;
-  --primary-900: #0c4a6e;
+  /* New Pastel Color Palette - Unified System */
+  
+  /* Primary - Thistle (purple-pink) */
+  --primary-50: #f8f3f9;
+  --primary-100: #f2e8f4;
+  --primary-200: #ebdcee;
+  --primary-300: #e4d0e8;
+  --primary-400: #dec5e3;
+  --primary-500: #dec5e3;
+  --primary-600: #bd8bc7;
+  --primary-700: #9d53ab;
+  --primary-800: #683772;
+  --primary-900: #341c39;
 
+  /* Columbia Blue */
+  --columbia-50: #f5fbff;
+  --columbia-100: #ebf8fe;
+  --columbia-200: #e2f4fe;
+  --columbia-300: #d8f1fd;
+  --columbia-400: #cdedfd;
+  --columbia-500: #cdedfd;
+  --columbia-600: #76cdf9;
+  --columbia-700: #1eaef6;
+  --columbia-800: #0778b0;
+  --columbia-900: #043c58;
+
+  /* Uranian Blue */
+  --uranian-50: #f0f8ff;
+  --uranian-100: #e1f1ff;
+  --uranian-200: #d2eafe;
+  --uranian-300: #c3e2fe;
+  --uranian-400: #b6dcfe;
+  --uranian-500: #b6dcfe;
+  --uranian-600: #5eb3fd;
+  --uranian-700: #098afb;
+  --uranian-800: #035cab;
+  --uranian-900: #012e55;
+
+  /* Celeste (cyan-blue) */
+  --celeste-50: #edfefe;
+  --celeste-100: #dcfcfd;
+  --celeste-200: #cafbfd;
+  --celeste-300: #b9f9fc;
+  --celeste-400: #a9f8fb;
+  --celeste-500: #a9f8fb;
+  --celeste-600: #57f2f7;
+  --celeste-700: #0be8f0;
+  --celeste-800: #089ba0;
+  --celeste-900: #044d50;
+
+  /* Fluorescent Cyan */
+  --fluorescent-50: #e6fdfa;
+  --fluorescent-100: #cdfcf5;
+  --fluorescent-200: #b4faf0;
+  --fluorescent-300: #9bf9eb;
+  --fluorescent-400: #81f7e5;
+  --fluorescent-500: #81f7e5;
+  --fluorescent-600: #3bf3d7;
+  --fluorescent-700: #0ed5b7;
+  --fluorescent-800: #098e7a;
+  --fluorescent-900: #05473d;
+
+  /* Keep emerald for compatibility */
   --emerald-50: #ecfdf5;
   --emerald-100: #d1fae5;
   --emerald-200: #a7f3d0;
@@ -25,17 +76,7 @@
   --emerald-800: #065f46;
   --emerald-900: #064e3b;
 
-  --purple-50: #faf5ff;
-  --purple-100: #f3e8ff;
-  --purple-200: #e9d5ff;
-  --purple-300: #d8b4fe;
-  --purple-400: #c084fc;
-  --purple-500: #a855f7;
-  --purple-600: #9333ea;
-  --purple-700: #7c3aed;
-  --purple-800: #6b21a8;
-  --purple-900: #581c87;
-
+  /* Gray scale for text readability */
   --gray-50: #f8fafc;
   --gray-100: #f1f5f9;
   --gray-200: #e2e8f0;
@@ -47,18 +88,18 @@
   --gray-800: #1e293b;
   --gray-900: #0f172a;
 
-  /* Semantic Colors */
-  --success: #10b981;
+  /* Semantic Colors - Updated for new palette with good contrast */
+  --success: #0ed5b7; /* Fluorescent cyan-700 for good contrast */
   --warning: #f59e0b;
   --error: #ef4444;
-  --info: #3b82f6;
+  --info: #098afb; /* Uranian blue-700 for good contrast */
 
-  /* Vector UI Specific Colors */
-  --vector-bg: #fcfcfd;
+  /* Vector UI Specific Colors - Updated for pastel theme */
+  --vector-bg: #fefefe;
   --vector-surface: #ffffff;
-  --vector-border: #e1e5e9;
-  --vector-accent: #4f46e5;
-  --vector-highlight: #06d6a0;
+  --vector-border: #e4d0e8; /* Light thistle for subtle borders */
+  --vector-accent: #9d53ab; /* Thistle-700 for accents */
+  --vector-highlight: #0ed5b7; /* Fluorescent cyan for highlights */
 
   /* Typography Scale */
   --text-xs: 0.75rem;    /* 12px */
@@ -196,12 +237,12 @@ body {
 
 .btn-primary {
   color: white;
-  background: linear-gradient(135deg, var(--primary-600) 0%, var(--emerald-600) 100%);
+  background: linear-gradient(135deg, var(--primary-700) 0%, var(--fluorescent-700) 100%);
   box-shadow: var(--shadow-vector), 0 0 0 1px rgb(255 255 255 / 0.1) inset;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--primary-700) 0%, var(--emerald-700) 100%);
+  background: linear-gradient(135deg, var(--primary-800) 0%, var(--fluorescent-800) 100%);
   transform: translateY(-1px) scale(1.02);
   box-shadow: var(--shadow-xl), 0 0 0 1px rgb(255 255 255 / 0.2) inset;
 }
@@ -380,13 +421,23 @@ body {
 }
 
 .badge-primary {
-  color: var(--primary-700);
+  color: var(--primary-900);
   background: var(--primary-100);
 }
 
 .badge-success {
-  color: var(--emerald-700);
-  background: var(--emerald-100);
+  color: var(--fluorescent-900);
+  background: var(--fluorescent-100);
+}
+
+.badge-info {
+  color: var(--uranian-900);
+  background: var(--uranian-100);
+}
+
+.badge-secondary {
+  color: var(--celeste-900);
+  background: var(--celeste-100);
 }
 
 .badge-warning {
@@ -419,7 +470,7 @@ body {
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(135deg, var(--primary-600) 0%, var(--emerald-600) 100%);
+  background: linear-gradient(135deg, var(--primary-700) 0%, var(--fluorescent-700) 100%);
   transition: width var(--duration-300) var(--ease-vector);
   border-radius: var(--radius-full);
 }
@@ -438,26 +489,26 @@ body {
 
 /* ===== VECTOR GRADIENTS ===== */
 .gradient-primary {
-  background: linear-gradient(135deg, var(--primary-600) 0%, var(--emerald-600) 100%);
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--fluorescent-600) 100%);
 }
 
 .gradient-secondary {
-  background: linear-gradient(135deg, var(--emerald-500) 0%, var(--primary-500) 100%);
+  background: linear-gradient(135deg, var(--celeste-500) 0%, var(--uranian-500) 100%);
 }
 
 .gradient-accent {
-  background: linear-gradient(135deg, var(--purple-500) 0%, var(--primary-500) 100%);
+  background: linear-gradient(135deg, var(--primary-700) 0%, var(--columbia-600) 100%);
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, var(--primary-600) 0%, var(--emerald-600) 100%);
+  background: linear-gradient(135deg, var(--primary-700) 0%, var(--fluorescent-700) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-text-accent {
-  background: linear-gradient(135deg, var(--purple-500) 0%, var(--primary-500) 100%);
+  background: linear-gradient(135deg, var(--uranian-700) 0%, var(--celeste-700) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

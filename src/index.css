@@ -18,7 +18,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, var(--primary-600) 0%, var(--emerald-600) 100%);
+  background: linear-gradient(135deg, var(--primary-700) 0%, var(--fluorescent-700) 100%);
   border: none;
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-vector);
@@ -29,7 +29,7 @@
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--primary-700) 0%, var(--emerald-700) 100%);
+  background: linear-gradient(135deg, var(--primary-800) 0%, var(--fluorescent-800) 100%);
   transform: translateY(-1px) scale(1.02);
   box-shadow: var(--shadow-xl);
 }

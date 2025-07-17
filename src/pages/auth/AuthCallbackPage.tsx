@@ -21,8 +21,9 @@ export default function AuthCallbackPage() {
         }
 
         if (data.session) {
-          notify.success('Successfully authenticated!')
-          navigate('/')
+          notify.success('Email verified successfully!')
+          // Redirect to dashboard instead of landing page
+          navigate('/dashboard')
         } else {
           navigate('/auth/login')
         }
